@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<link rel="icon" href="data:,">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DELWATER LIMITED — Pure Hydration Delivered</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#00609a",
+        "primary-container": "#0079c1",
+        "on-primary": "#ffffff",
+        "secondary": "#046a63",
+        "secondary-container": "#a0f1e8",
+        "on-secondary": "#ffffff",
+        "surface": "#f7fafc",
+        "surface-container": "#ebeef0",
+        "surface-container-low": "#f1f4f6",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-high": "#e5e9eb",
+        "surface-container-highest": "#e0e3e5",
+        "on-surface": "#181c1e",
+        "on-surface-variant": "#414754",
+        "outline": "#717786",
+        "outline-variant": "#c1c6d7",
+        "background": "#f7fafc",
+        "on-background": "#181c1e",
+        "error": "#ba1a1a",
+      },
+      fontFamily: {
+        headline: ["Manrope"],
+        body: ["Plus Jakarta Sans"],
+        label: ["Plus Jakarta Sans"],
+      }
+    }
+  }
+}
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .water-gradient { background: linear-gradient(135deg, #00609a 0%, #0079c1 100%); }
+  .asymmetric-clip { clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%); }
+  .glass-nav { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); }
+  html { scroll-behavior: smooth; }
+  .cart-item-enter { animation: slideIn 0.2s ease; }
+  @keyframes slideIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+  .cart-drawer { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .overlay { transition: opacity 0.3s ease; }
+  /* Success animation */
+  @keyframes popIn { 0%{transform:scale(0.8);opacity:0} 70%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+  .pop-in { animation: popIn 0.4s ease forwards; }
+  /* Sticky active nav */
+  .nav-link.active { color: #00609a; border-bottom: 2px solid #00609a; padding-bottom: 2px; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body">
+
+<!-- ─── CART OVERLAY ─────────────────────────────── -->
+<div id="cartOverlay" class="overlay fixed inset-0 bg-black/40 z-[60] hidden opacity-0" onclick="toggleCart()"></div>
+
+<!-- ─── CART DRAWER ────────────────────────────────── -->
+<aside id="cartDrawer" class="cart-drawer fixed top-0 right-0 h-full w-full max-w-sm bg-white z-[70] shadow-2xl flex flex-col translate-x-full">
+  <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">shopping_cart</span>
+      <h2 class="font-headline font-bold text-lg">Your Cart</h2>
+      <span id="cartCountBadgeDrawer" class="bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
+    </div>
+    <button onclick="toggleCart()" class="p-2 rounded-full hover:bg-slate-100 transition-colors">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+  <div id="cartItemsList" class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+    <div id="cartEmpty" class="flex flex-col items-center justify-center h-full py-16 text-center">
+      <span class="material-symbols-outlined text-5xl text-slate-300 mb-4">shopping_cart</span>
+      <p class="text-on-surface-variant font-medium">Your cart is empty</p>
+      <p class="text-sm text-outline mt-1">Add products to get started</p>
+    </div>
+  </div>
+  <div id="cartFooter" class="hidden border-t border-slate-100 px-6 py-5 space-y-4">
+    <div class="flex justify-between items-center">
+      <span class="font-label font-bold text-sm uppercase tracking-widest text-on-surface-variant">Total</span>
+      <span id="cartTotalDrawer" class="font-headline font-bold text-2xl text-primary">KSh 0</span>
+    </div>
+    <button onclick="goToCheckout()" class="w-full water-gradient text-white py-4 rounded-xl font-label font-bold uppercase tracking-widest text-sm hover:opacity-90 transition-opacity">
+      Proceed to Checkout
+    </button>
+    <button onclick="toggleCart()" class="w-full text-center text-sm text-outline hover:text-on-surface transition-colors">Continue Shopping</button>
+  </div>
+</aside>
+
+<!-- ─── NAVBAR ─────────────────────────────────────── -->
+<nav class="fixed top-0 w-full z-50 glass-nav border-b border-slate-100/60">
+  <div class="flex justify-between items-center max-w-7xl mx-auto px-6 h-20">
+    <div class="flex items-center gap-3">
+      <img src="DEL LOGO.jpg">
+		<div>
+        <div class="text-xs text-on-surface-variant font-label">Mwihoko, Ruiru</div>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#home" class="nav-link text-sm font-label font-semibold text-on-surface-variant hover:text-primary transition-colors tracking-wide">Home</a>
+      <a href="#products" class="nav-link text-sm font-label font-semibold text-on-surface-variant hover:text-primary transition-colors tracking-wide">Products</a>
+      <a href="#refill" class="nav-link text-sm font-label font-semibold text-on-surface-variant hover:text-primary transition-colors tracking-wide">Refills</a>
+      <a href="#connection" class="nav-link text-sm font-label font-semibold text-on-surface-variant hover:text-primary transition-colors tracking-wide">Connection</a>
+      <a href="#checkout" class="nav-link text-sm font-label font-semibold text-on-surface-variant hover:text-primary transition-colors tracking-wide">Checkout</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <!-- Cart Button -->
+      <button onclick="toggleCart()" class="relative p-2 rounded-full hover:bg-surface-container transition-colors">
+        <span class="material-symbols-outlined text-on-surface-variant">shopping_cart</span>
+        <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 items-center justify-center hidden">0</span>
+      </button>
+      <button onclick="document.getElementById('checkout').scrollIntoView({behavior:'smooth'})" class="water-gradient text-on-primary px-6 py-2.5 rounded-xl font-label font-bold text-xs uppercase tracking-widest transition-transform hover:scale-95 active:scale-90 shadow-lg shadow-primary/20">
+        Order Now
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main>
+<!-- ═══════════════════════════════════════════════════
+     SECTION 1 — HOME
+     ═══════════════════════════════════════════════════ -->
+<section id="home" class="relative min-h-screen flex items-center overflow-hidden bg-surface pt-20">
+  <div class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-20">
+    <div class="lg:col-span-7 z-10">
+      <span class="text-secondary font-label font-bold uppercase tracking-[0.3em] text-xs mb-6 block">Precision Hydration · Mwihoko, Ruiru</span>
+      <h1 class="text-6xl md:text-8xl font-headline font-light leading-tight text-on-background -ml-1 mb-8">
+        The Purest Flow <br><span class="font-extrabold text-primary">In Nairobi.</span>
+      </h1>
+      <p class="text-on-surface-variant text-lg md:text-xl max-w-xl leading-relaxed mb-10 font-body">
+        Engineered for clarity. Delivered for life. Premium bottled water, refills, and custom event branding — serving Nairobi and beyond.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 mb-12">
+        <button onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})" class="water-gradient text-on-primary px-8 py-4 rounded-xl font-label font-bold uppercase tracking-widest text-sm shadow-xl shadow-primary/25 hover:opacity-90 transition-all flex items-center justify-center gap-3">
+          Shop Products <span class="material-symbols-outlined text-lg">arrow_forward</span>
+        </button>
+        <button onclick="document.getElementById('refill').scrollIntoView({behavior:'smooth'})" class="bg-surface-container-lowest border border-outline/20 text-on-surface px-8 py-4 rounded-xl font-label font-bold uppercase tracking-widest text-sm hover:bg-surface-container transition-all flex items-center justify-center gap-3">
+          View Refill Rates
+        </button>
+      </div>
+      <!-- Trust badges -->
+      <div class="flex flex-wrap gap-4">
+        <div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/20 rounded-full px-4 py-2">
+          <span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings:'FILL' 1">verified</span>
+          <span class="text-xs font-label font-semibold text-on-surface-variant">KEBS Certified</span>
+        </div>
+        <div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/20 rounded-full px-4 py-2">
+          <span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings:'FILL' 1">local_shipping</span>
+          <span class="text-xs font-label font-semibold text-on-surface-variant">Free Delivery · Nairobi</span>
+        </div>
+        <div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/20 rounded-full px-4 py-2">
+          <span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings:'FILL' 1">schedule</span>
+          <span class="text-xs font-label font-semibold text-on-surface-variant">24/7 Support</span>
+        </div>
+      </div>
+    </div>
+    <div class="lg:col-span-5 relative">
+      <div class="relative w-full aspect-square rounded-full overflow-hidden border-[16px] border-surface-container-lowest shadow-2xl">
+        <img src="https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=800&q=80" alt="Pure water" class="w-full h-full object-cover">
+      </div>
+      <div class="absolute -bottom-4 -left-4 bg-surface-container-lowest p-5 rounded-xl shadow-xl flex items-center gap-4 max-w-xs border border-outline-variant/10">
+        <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-secondary">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">verified</span>
+        </div>
+        <div>
+          <p class="font-headline font-bold text-sm">100% Purified</p>
+          <p class="text-xs text-on-surface-variant">7-Stage Filtration Process</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="absolute top-0 right-0 w-1/3 h-full bg-surface-container-low -z-10 asymmetric-clip hidden lg:block"></div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-24 bg-surface-container-low">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <span class="text-secondary font-label font-bold uppercase tracking-[0.3em] text-xs mb-4 block">Our Difference</span>
+      <h2 class="text-4xl md:text-5xl font-headline font-light text-on-background">Defined by <span class="font-bold">Clarity.</span></h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="md:col-span-2 bg-surface-container-lowest p-10 rounded-xl flex flex-col justify-between relative overflow-hidden group">
+        <div class="relative z-10">
+          <span class="material-symbols-outlined text-4xl text-primary mb-6">biotech</span>
+          <h3 class="text-2xl font-headline font-bold mb-4">7-Stage Filtration</h3>
+          <p class="text-on-surface-variant max-w-md leading-relaxed">Our proprietary refinement process ensures the removal of all impurities while maintaining essential alkaline minerals for optimal health.</p>
+        </div>
+      </div>
+      <div class="bg-primary text-on-primary p-10 rounded-xl flex flex-col justify-end water-gradient">
+        <span class="material-symbols-outlined text-4xl mb-6" style="font-variation-settings:'FILL' 1">speed</span>
+        <h3 class="text-2xl font-headline font-bold mb-4">Express Logistics</h3>
+        <p class="text-blue-100 leading-relaxed">Nairobi's fastest delivery fleet. From our source to your doorstep in under 90 minutes.</p>
+      </div>
+      <div class="bg-surface-container-lowest p-10 rounded-xl flex flex-col items-start border border-outline-variant/10">
+        <span class="material-symbols-outlined text-4xl text-secondary mb-6">eco</span>
+        <h3 class="text-2xl font-headline font-bold mb-4">Sustainable Cycle</h3>
+        <p class="text-on-surface-variant leading-relaxed">Eco-conscious refill programs that reduce plastic waste in our city.</p>
+      </div>
+      <div class="md:col-span-2 bg-surface-container p-10 rounded-xl flex flex-col md:flex-row items-center gap-10">
+        <div class="flex-1">
+          <h3 class="text-2xl font-headline font-bold mb-4">Reliable Every Time</h3>
+          <p class="text-on-surface-variant leading-relaxed">Consistent water quality for homes, offices, hospitals, and events across Nairobi.</p>
+        </div>
+        <div class="flex-1 grid grid-cols-2 gap-4 w-full">
+          <div class="bg-surface-container-lowest p-4 rounded-lg text-center">
+            <p class="text-3xl font-headline font-bold text-primary">24/7</p>
+            <p class="text-xs font-label uppercase tracking-widest mt-1">Support</p>
+          </div>
+          <div class="bg-surface-container-lowest p-4 rounded-lg text-center">
+            <p class="text-3xl font-headline font-bold text-primary">99%</p>
+            <p class="text-xs font-label uppercase tracking-widest mt-1">On-Time</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION 2 — PRODUCTS
+     ═══════════════════════════════════════════════════ -->
+<section id="products" class="py-24 bg-surface">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+      <div>
+        <span class="text-secondary font-label font-bold uppercase tracking-[0.3em] text-xs mb-4 block">Product Suite</span>
+        <h2 class="text-4xl md:text-5xl font-headline font-light text-on-background">Standard <span class="font-bold text-blue-900">Collections</span></h2>
+        <div class="h-1 w-20 bg-secondary rounded-full mt-4"></div>
+      </div>
+      <p class="text-on-surface-variant font-medium text-lg italic">Uniform Pricing: KSh 400 Per Pack</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+      <!-- Product 1 -->
+      <div class="bg-surface-container-lowest p-8 rounded-xl group transition-all hover:-translate-y-2 shadow-sm hover:shadow-xl border border-outline-variant/10">
+        <div class="aspect-square rounded-xl bg-surface mb-8 overflow-hidden">
+          <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" src="https://images.unsplash.com/photo-1616118132534-381148898bb4?auto=format&fit=crop&w=600&q=80" alt="500ml pack">
+        </div>
+        <h3 class="font-headline text-2xl font-bold mb-2">500ml Classic Pack</h3>
+        <p class="text-on-surface-variant text-sm mb-6">Case of 24 Units. Perfect for office environments and fitness centres.</p>
+        <div class="flex justify-between items-center border-t border-surface-variant pt-6">
+          <span class="text-3xl font-headline font-bold text-primary">KSh 400</span>
+          <button onclick="addToCart('500ml Classic Pack (×24)', 400, 'product')" class="bg-surface-container p-3 rounded-full hover:bg-primary hover:text-white transition-colors group/btn flex items-center gap-2 px-4">
+            <span class="material-symbols-outlined text-lg">add_shopping_cart</span>
+            <span class="text-xs font-label font-bold uppercase tracking-wide hidden group-hover/btn:inline">Add</span>
+          </button>
+        </div>
+      </div>
+      <!-- Product 2 -->
+      <div class="bg-surface-container-lowest p-8 rounded-xl group transition-all hover:-translate-y-2 shadow-sm hover:shadow-xl border-2 border-primary relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.2em]">Most Popular</div>
+        <div class="aspect-square rounded-xl bg-surface mb-8 overflow-hidden">
+          <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" src="https://images.unsplash.com/photo-1564419320408-38e380c8b21b?auto=format&fit=crop&w=600&q=80" alt="1L pack">
+        </div>
+        <h3 class="font-headline text-2xl font-bold mb-2">1 Litre Value Case</h3>
+        <p class="text-on-surface-variant text-sm mb-6">Case of 12 Units. Designed for daily hydration and residential supply.</p>
+        <div class="flex justify-between items-center border-t border-surface-variant pt-6">
+          <span class="text-3xl font-headline font-bold text-primary">KSh 400</span>
+          <button onclick="addToCart('1 Litre Value Case (×12)', 400, 'product')" class="bg-surface-container p-3 rounded-full hover:bg-primary hover:text-white transition-colors group/btn flex items-center gap-2 px-4">
+            <span class="material-symbols-outlined text-lg">add_shopping_cart</span>
+            <span class="text-xs font-label font-bold uppercase tracking-wide hidden group-hover/btn:inline">Add</span>
+          </button>
+        </div>
+      </div>
+      <!-- Product 3 -->
+      <div class="bg-surface-container-lowest p-8 rounded-xl group transition-all hover:-translate-y-2 shadow-sm hover:shadow-xl border border-outline-variant/10">
+        <div class="aspect-square rounded-xl bg-surface mb-8 overflow-hidden">
+          <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" src="https://images.unsplash.com/photo-1603394151492-9dad8c2bfed8?auto=format&fit=crop&w=600&q=80" alt="1.5L pack">
+        </div>
+        <h3 class="font-headline text-2xl font-bold mb-2">1.5 Litre High Volume</h3>
+        <p class="text-on-surface-variant text-sm mb-6">Case of 9 Units. Maximum hydration for families and outdoor activities.</p>
+        <div class="flex justify-between items-center border-t border-surface-variant pt-6">
+          <span class="text-3xl font-headline font-bold text-primary">KSh 400</span>
+          <button onclick="addToCart('1.5 Litre High Volume (×9)', 400, 'product')" class="bg-surface-container p-3 rounded-full hover:bg-primary hover:text-white transition-colors group/btn flex items-center gap-2 px-4">
+            <span class="material-symbols-outlined text-lg">add_shopping_cart</span>
+            <span class="text-xs font-label font-bold uppercase tracking-wide hidden group-hover/btn:inline">Add</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Event Bottles -->
+    <div class="bg-gradient-to-r from-secondary-container/20 to-surface-container rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row items-center">
+      <div class="lg:w-1/2 p-12 lg:p-16">
+        <span class="bg-secondary text-white px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-6 inline-block">Exclusive Service</span>
+        <h2 class="font-headline font-light text-4xl mb-4">Customized <br><span class="font-bold text-secondary">Event Bottles</span></h2>
+        <p class="text-on-surface-variant text-base leading-relaxed mb-6">Elevate your corporate events, weddings, or milestones with bespoke labeling. Your brand, our purity.</p>
+        <div class="flex items-center gap-6 mb-8">
+          <div>
+            <span class="text-4xl font-headline font-extrabold text-on-surface">KSh 700</span>
+            <span class="text-on-surface-variant text-sm block">per pack</span>
+          </div>
+        </div>
+        <button onclick="addToCart('Custom Event Branded Pack', 700, 'custom')" class="bg-secondary text-white px-8 py-4 rounded-xl font-bold uppercase tracking-wider flex items-center gap-3 hover:shadow-xl hover:shadow-secondary/20 transition-all">
+          Add to Cart <span class="material-symbols-outlined">add_shopping_cart</span>
+        </button>
+      </div>
+      <div class="lg:w-1/2 h-72 lg:h-[400px] w-full">
+        <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1610631787813-9eeb1a2386cc?auto=format&fit=crop&w=800&q=80" alt="Custom event bottles">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION 3 — REFILL
+     ═══════════════════════════════════════════════════ -->
+<section id="refill" class="bg-surface-container-low py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+      <div>
+        <span class="text-secondary font-label font-bold uppercase tracking-[0.3em] text-xs mb-4 block">Refill Services</span>
+        <h2 class="font-headline text-4xl font-light text-on-surface mb-2">Sustainable Refill <span class="font-bold">Plans</span></h2>
+        <p class="text-outline">Eco-friendly hydration. Free delivery in Mwihoko & surroundings.</p>
+      </div>
+      <div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/20 rounded-xl px-5 py-3 shadow-sm">
+        <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1">local_shipping</span>
+        <span class="text-sm font-label font-semibold">Free in <span class="text-secondary">Mwihoko</span> &amp; surroundings</span>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+      <!-- 5L -->
+      <div class="bg-surface-container-lowest p-8 rounded-2xl shadow-sm hover:shadow-xl transition-shadow border border-outline-variant/10 group">
+        <div class="flex justify-between items-start mb-6">
+          <span class="text-4xl font-headline font-extrabold text-surface-container-highest group-hover:text-primary/10 transition-colors">01</span>
+          <span class="material-symbols-outlined text-primary text-3xl">water_drop</span>
+        </div>
+        <h3 class="text-2xl font-headline font-bold mb-2">5 Litres</h3>
+        <p class="text-on-surface-variant text-sm mb-8">Perfect for daily hydration for individuals.</p>
+        <div class="flex items-baseline gap-1 mb-8">
+          <span class="text-4xl font-headline font-bold text-primary">KSh 40</span>
+          <span class="text-outline text-xs uppercase font-bold tracking-tighter ml-1">Per Refill</span>
+        </div>
+        <button onclick="addToCart('5L Water Refill', 40, 'refill')" class="w-full py-3 rounded-xl border border-outline text-on-surface font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all">Add to Cart</button>
+      </div>
+      <!-- 10L -->
+      <div class="bg-surface-container-lowest p-8 rounded-2xl shadow-sm hover:shadow-xl transition-shadow border-2 border-primary group relative scale-[1.02]">
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.2em]">Most Popular</div>
+        <div class="flex justify-between items-start mb-6">
+          <span class="text-4xl font-headline font-extrabold text-surface-container-highest group-hover:text-primary/10 transition-colors">02</span>
+          <span class="material-symbols-outlined text-primary text-3xl">opacity</span>
+        </div>
+        <h3 class="text-2xl font-headline font-bold mb-2">10 Litres</h3>
+        <p class="text-on-surface-variant text-sm mb-8">Ideal for small households and office pantry use.</p>
+        <div class="flex items-baseline gap-1 mb-8">
+          <span class="text-4xl font-headline font-bold text-primary">KSh 80</span>
+          <span class="text-outline text-xs uppercase font-bold tracking-tighter ml-1">Per Refill</span>
+        </div>
+        <button onclick="addToCart('10L Water Refill', 80, 'refill')" class="w-full py-3 rounded-xl water-gradient text-white font-bold text-xs uppercase tracking-widest transition-all hover:opacity-90">Add to Cart</button>
+      </div>
+      <!-- 20L -->
+      <div class="bg-surface-container-lowest p-8 rounded-2xl shadow-sm hover:shadow-xl transition-shadow border border-outline-variant/10 group">
+        <div class="flex justify-between items-start mb-6">
+          <span class="text-4xl font-headline font-extrabold text-surface-container-highest group-hover:text-primary/10 transition-colors">03</span>
+          <span class="material-symbols-outlined text-primary text-3xl">water_full</span>
+        </div>
+        <h3 class="text-2xl font-headline font-bold mb-2">20 Litres</h3>
+        <p class="text-on-surface-variant text-sm mb-8">The professional standard for high-demand hydration.</p>
+        <div class="flex items-baseline gap-1 mb-8">
+          <span class="text-4xl font-headline font-bold text-primary">KSh 160</span>
+          <span class="text-outline text-xs uppercase font-bold tracking-tighter ml-1">Per Refill</span>
+        </div>
+        <button onclick="addToCart('20L Water Refill', 160, 'refill')" class="w-full py-3 rounded-xl border border-outline text-on-surface font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all">Add to Cart</button>
+      </div>
+    </div>
+
+    <!-- Delivery Zone Info -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <span class="text-primary font-bold text-xs uppercase tracking-[0.3em] mb-4 block">Logistics Network</span>
+        <h2 class="font-headline text-4xl font-light text-on-surface mb-8">Hydration without <span class="italic">Boundaries.</span></h2>
+        <div class="space-y-6">
+          <div class="flex gap-5">
+            <div class="bg-secondary-container p-3 rounded-xl self-start flex-shrink-0">
+              <span class="material-symbols-outlined text-on-secondary-container">done_all</span>
+            </div>
+            <div>
+              <h5 class="font-bold text-lg mb-1">Mwihoko &amp; Surroundings</h5>
+              <p class="text-on-surface-variant text-sm">Enjoy zero delivery fees within our primary neighbourhood. Rapid 2-hour delivery window.</p>
+              <span class="text-secondary font-bold text-xs mt-2 inline-block bg-secondary-container px-3 py-1 rounded-full">FREE DELIVERY</span>
+            </div>
+          </div>
+          <div class="flex gap-5">
+            <div class="bg-surface-container p-3 rounded-xl self-start flex-shrink-0">
+              <span class="material-symbols-outlined text-on-surface-variant">distance</span>
+            </div>
+            <div>
+              <h5 class="font-bold text-lg mb-1">Nairobi &amp; Countrywide</h5>
+              <p class="text-on-surface-variant text-sm">Beyond our local hub, we partner with premium carriers for nationwide fulfillment. Transparent tier-based fees apply based on distance.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-on-background rounded-2xl p-10 text-white relative overflow-hidden">
+        <h3 class="font-headline text-2xl font-light mb-2">Track Your <span class="text-secondary-container">Refill Flow.</span></h3>
+        <p class="text-slate-400 text-sm mb-6">Real-time updates from source to doorstep.</p>
+        <div class="space-y-3 mb-6">
+          <div class="flex justify-between text-xs text-slate-400 uppercase font-bold">
+            <span>Batch Quality: Ph 7.4</span><span>Out for Delivery</span>
+          </div>
+          <div class="w-full h-2 bg-secondary/20 rounded-full overflow-hidden">
+            <div class="h-full w-3/4 bg-secondary-container rounded-full"></div>
+          </div>
+        </div>
+        <div class="bg-white/10 border border-white/20 p-5 rounded-xl">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">local_shipping</span>
+            </div>
+            <div>
+              <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Latest Order</p>
+              <p class="text-white font-bold text-sm">REF-8829-DX</p>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3 text-xs text-slate-400"><span class="w-2 h-2 rounded-full bg-secondary"></span><span>Sanitized &amp; Bottled — 08:45 AM</span></div>
+            <div class="flex items-center gap-3 text-xs text-white font-bold"><span class="w-2 h-2 rounded-full bg-secondary-container shadow-lg"></span><span>On Route to Mwihoko — 10:12 AM</span></div>
+            <div class="flex items-center gap-3 text-xs text-slate-400"><span class="w-2 h-2 rounded-full bg-slate-500"></span><span>Estimated Arrival — 11:30 AM</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION — WATER CONNECTION SERVICE
+     ═══════════════════════════════════════════════════ -->
+<section id="connection" class="py-24 bg-surface-container-low">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <span class="text-secondary font-label font-bold uppercase tracking-[0.3em] text-xs mb-4 block">Piped Water Supply</span>
+      <h2 class="text-4xl md:text-5xl font-headline font-light text-on-background">Water <span class="font-bold text-primary">Connection</span></h2>
+      <p class="text-on-surface-variant text-lg max-w-2xl mx-auto mt-4">We supply treated water directly to homes and businesses across Mwihoko and Ruiru through our piped network.</p>
+    </div>
+
+    <!-- Pricing cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+      <!-- Unit pricing -->
+      <div class="bg-surface-container-lowest rounded-2xl p-10 border border-outline-variant/10 shadow-sm flex flex-col">
+        <div class="w-14 h-14 rounded-2xl water-gradient flex items-center justify-center mb-6">
+          <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1">water_drop</span>
+        </div>
+        <h3 class="font-headline font-bold text-2xl mb-2">Monthly Water Bill</h3>
+        <p class="text-on-surface-variant text-sm mb-6">Metered billing — you only pay for what you use, read every month.</p>
+        <div class="flex items-end gap-2 mb-6">
+          <span class="text-5xl font-headline font-extrabold text-primary">KSh 80</span>
+          <span class="text-on-surface-variant text-sm mb-2">/ unit</span>
+        </div>
+        <ul class="space-y-3 text-sm text-on-surface-variant flex-1">
+          <li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary text-base" style="font-variation-settings:'FILL' 1">check_circle</span>Monthly meter readings</li>
+          <li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary text-base" style="font-variation-settings:'FILL' 1">check_circle</span>Itemised bill each month</li>
+          <li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary text-base" style="font-variation-settings:'FILL' 1">check_circle</span>Homes, rentals &amp; businesses</li>
+          <li class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary text-base" style="font-variation-settings:'FILL' 1">check_circle</span>Pay via M-Pesa or cash</li>
+        </ul>
+      </div>
+
+      <!-- Installation fee -->
+      <div class="water-gradient rounded-2xl p-10 text-white flex flex-col">
+        <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center mb-6">
+          <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1">build</span>
+        </div>
+        <h3 class="font-headline font-bold text-2xl mb-2">One-Time Installation</h3>
+        <p class="text-blue-100 text-sm mb-6">Covers pipe connection, meter fitting, and commissioning at your property.</p>
+        <div class="flex items-end gap-2 mb-6">
+          <span class="text-5xl font-headline font-extrabold">KSh 15,000</span>
+          <span class="text-blue-200 text-sm mb-2">once</span>
+        </div>
+        <ul class="space-y-3 text-sm text-blue-100 flex-1">
+          <li class="flex items-center gap-3"><span class="material-symbols-outlined text-blue-200 text-base" style="font-variation-settings:'FILL' 1">check_circle</span>Full pipe &amp; meter installation</li>
+          <li class="flex items-center gap-3"><span class="material-symbols-outlined text-blue-200 text-base" style="font-variation-settings:'FILL' 1">check_circle</span>Quality-tested meter provided</li>
+          <li class="flex items-center gap-3"><span class="material-symbols-outlined text-blue-200 text-base" style="font-variation-settings:'FILL' 1">check_circle</span>Lifetime connection number</li>
+          <li class="flex items-center gap-3"><span class="material-symbols-outlined text-blue-200 text-base" style="font-variation-settings:'FILL' 1">check_circle</span>Instalment payments accepted</li>
+        </ul>
+        <a href="tel:+254702882491" class="mt-8 bg-white text-primary py-3 rounded-xl text-center font-label font-bold uppercase tracking-widest text-sm hover:bg-blue-50 transition-colors">
+          Apply for Connection
+        </a>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="bg-surface-container-lowest rounded-2xl p-10 border border-outline-variant/10 shadow-sm">
+      <h3 class="font-headline font-bold text-2xl mb-8 text-center">How Water Connection Works</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-full water-gradient text-white font-bold text-lg flex items-center justify-center mx-auto mb-4">1</div>
+          <p class="font-semibold text-sm mb-1">Apply</p>
+          <p class="text-xs text-on-surface-variant">Call or visit us to register for a connection</p>
+        </div>
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-full water-gradient text-white font-bold text-lg flex items-center justify-center mx-auto mb-4">2</div>
+          <p class="font-semibold text-sm mb-1">Pay Installation</p>
+          <p class="text-xs text-on-surface-variant">Settle KSh 15,000 (instalments available)</p>
+        </div>
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-full water-gradient text-white font-bold text-lg flex items-center justify-center mx-auto mb-4">3</div>
+          <p class="font-semibold text-sm mb-1">Get Connected</p>
+          <p class="text-xs text-on-surface-variant">Our team installs your meter and pipe</p>
+        </div>
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-full water-gradient text-white font-bold text-lg flex items-center justify-center mx-auto mb-4">4</div>
+          <p class="font-semibold text-sm mb-1">Monthly Billing</p>
+          <p class="text-xs text-on-surface-variant">Pay KSh 80 per unit used each month</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION 4 — CHECKOUT
+     ═══════════════════════════════════════════════════ -->
+<section id="checkout" class="py-24 bg-surface">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="mb-14">
+      <span class="text-secondary font-label font-bold uppercase tracking-[0.3em] text-xs mb-4 block">Place Your Order</span>
+      <h2 class="text-4xl md:text-5xl font-headline font-light text-on-background">Checkout</h2>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+      <!-- ── Left: Order Form ── -->
+      <div class="lg:col-span-7 space-y-8">
+
+        <!-- Contact Details -->
+        <div class="bg-surface-container-lowest rounded-2xl p-8 border border-outline-variant/10 shadow-sm">
+          <h3 class="font-headline font-bold text-xl mb-6 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full water-gradient text-white flex items-center justify-center text-sm font-bold">1</div>
+            Contact Details
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant mb-2">Full Name *</label>
+              <input id="co-name" type="text" placeholder="e.g. Jane Wanjiku" class="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm font-body focus:ring-2 focus:ring-primary focus:border-primary bg-surface outline-none transition">
+            </div>
+            <div>
+              <label class="block text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant mb-2">Phone / WhatsApp *</label>
+              <input id="co-phone" type="tel" placeholder="+254 7XX XXX XXX" class="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm font-body focus:ring-2 focus:ring-primary focus:border-primary bg-surface outline-none transition">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant mb-2">Email Address</label>
+              <input id="co-email" type="email" placeholder="jane@example.com" class="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm font-body focus:ring-2 focus:ring-primary focus:border-primary bg-surface outline-none transition">
+            </div>
+          </div>
+        </div>
+
+        <!-- Delivery Details -->
+        <div class="bg-surface-container-lowest rounded-2xl p-8 border border-outline-variant/10 shadow-sm">
+          <h3 class="font-headline font-bold text-xl mb-6 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full water-gradient text-white flex items-center justify-center text-sm font-bold">2</div>
+            Delivery Details
+          </h3>
+          <div class="space-y-5">
+            <div>
+              <label class="block text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant mb-2">Delivery Address *</label>
+              <input id="co-address" type="text" placeholder="Street / Estate / Building, Area" class="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm font-body focus:ring-2 focus:ring-primary focus:border-primary bg-surface outline-none transition">
+            </div>
+            <div class="grid grid-cols-2 gap-5">
+              <div>
+                <label class="block text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant mb-2">Town / City *</label>
+                <select id="co-city" class="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm font-body focus:ring-2 focus:ring-primary bg-surface outline-none transition">
+                  <option value="">Select area...</option>
+                  <option>Mwihoko (Free)</option>
+                  <option>Ruiru (Free)</option>
+                  <option>Nairobi CBD</option>
+                  <option>Westlands</option>
+                  <option>Kilimani</option>
+                  <option>Karen</option>
+                  <option>Kasarani</option>
+                  <option>Embakasi</option>
+                  <option>Thika</option>
+                  <option>Kiambu</option>
+                  <option>Other (fee applies)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant mb-2">Preferred Date</label>
+                <input id="co-date" type="date" class="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm font-body focus:ring-2 focus:ring-primary bg-surface outline-none transition">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant mb-2">Delivery Notes</label>
+              <textarea id="co-notes" rows="3" placeholder="Gate code, landmark, special instructions..." class="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm font-body focus:ring-2 focus:ring-primary focus:border-primary bg-surface outline-none transition resize-none"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="bg-surface-container-lowest rounded-2xl p-8 border border-outline-variant/10 shadow-sm">
+          <h3 class="font-headline font-bold text-xl mb-6 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full water-gradient text-white flex items-center justify-center text-sm font-bold">3</div>
+            Payment Method
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="paymentMethods">
+            <label class="payment-option cursor-pointer">
+              <input type="radio" name="payment" value="mpesa" class="sr-only" checked>
+              <div class="payment-card border-2 border-primary bg-primary/5 rounded-xl p-4 text-center transition-all">
+                <span class="material-symbols-outlined text-2xl text-primary mb-2 block" style="font-variation-settings:'FILL' 1">phone_android</span>
+                <p class="font-label font-bold text-sm">M-Pesa</p>
+                <p class="text-xs text-on-surface-variant mt-1">Pay on delivery</p>
+              </div>
+            </label>
+            <label class="payment-option cursor-pointer">
+              <input type="radio" name="payment" value="cash" class="sr-only">
+              <div class="payment-card border-2 border-outline-variant rounded-xl p-4 text-center transition-all hover:border-primary">
+                <span class="material-symbols-outlined text-2xl text-on-surface-variant mb-2 block" style="font-variation-settings:'FILL' 1">payments</span>
+                <p class="font-label font-bold text-sm">Cash</p>
+                <p class="text-xs text-on-surface-variant mt-1">Pay on delivery</p>
+              </div>
+            </label>
+            <label class="payment-option cursor-pointer">
+              <input type="radio" name="payment" value="bank" class="sr-only">
+              <div class="payment-card border-2 border-outline-variant rounded-xl p-4 text-center transition-all hover:border-primary">
+                <span class="material-symbols-outlined text-2xl text-on-surface-variant mb-2 block" style="font-variation-settings:'FILL' 1">account_balance</span>
+                <p class="font-label font-bold text-sm">Bank Transfer</p>
+                <p class="text-xs text-on-surface-variant mt-1">Before delivery</p>
+              </div>
+            </label>
+          </div>
+          <!-- M-Pesa details hint -->
+          <div id="mpesaHint" class="mt-4 bg-secondary-container/30 border border-secondary/20 rounded-xl p-4 flex items-start gap-3">
+            <span class="material-symbols-outlined text-secondary text-sm mt-0.5">phone_android</span>
+            <p class="text-sm text-on-surface-variant">When you click <strong>Place Order</strong>, an M-Pesa STK Push will be sent to your phone. Enter your PIN to pay instantly.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Right: Order Summary ── -->
+      <div class="lg:col-span-5">
+        <div class="sticky top-28 space-y-6">
+          <div class="bg-surface-container-lowest rounded-2xl p-8 border border-outline-variant/10 shadow-sm">
+            <h3 class="font-headline font-bold text-xl mb-6">Order Summary</h3>
+
+            <!-- Quick add buttons -->
+            <div class="mb-6 pb-6 border-b border-outline-variant/20">
+              <p class="text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant mb-3">Quick Add</p>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="addToCart('500ml Classic Pack (×24)', 400, 'product')" class="text-xs bg-surface-container border border-outline-variant rounded-full px-3 py-1.5 hover:bg-primary hover:text-white hover:border-primary transition-all font-label font-semibold">+ 500ml Pack</button>
+                <button onclick="addToCart('1 Litre Value Case (×12)', 400, 'product')" class="text-xs bg-surface-container border border-outline-variant rounded-full px-3 py-1.5 hover:bg-primary hover:text-white hover:border-primary transition-all font-label font-semibold">+ 1L Pack</button>
+                <button onclick="addToCart('1.5 Litre High Volume (×9)', 400, 'product')" class="text-xs bg-surface-container border border-outline-variant rounded-full px-3 py-1.5 hover:bg-primary hover:text-white hover:border-primary transition-all font-label font-semibold">+ 1.5L Pack</button>
+                <button onclick="addToCart('5L Water Refill', 40, 'refill')" class="text-xs bg-surface-container border border-outline-variant rounded-full px-3 py-1.5 hover:bg-secondary hover:text-white hover:border-secondary transition-all font-label font-semibold">+ 5L Refill</button>
+                <button onclick="addToCart('10L Water Refill', 80, 'refill')" class="text-xs bg-surface-container border border-outline-variant rounded-full px-3 py-1.5 hover:bg-secondary hover:text-white hover:border-secondary transition-all font-label font-semibold">+ 10L Refill</button>
+                <button onclick="addToCart('20L Water Refill', 160, 'refill')" class="text-xs bg-surface-container border border-outline-variant rounded-full px-3 py-1.5 hover:bg-secondary hover:text-white hover:border-secondary transition-all font-label font-semibold">+ 20L Refill</button>
+                <button onclick="addToCart('Custom Event Branded Pack', 700, 'custom')" class="text-xs bg-surface-container border border-outline-variant rounded-full px-3 py-1.5 hover:bg-primary hover:text-white hover:border-primary transition-all font-label font-semibold">+ Custom Pack</button>
+              </div>
+            </div>
+
+            <!-- Cart items in summary -->
+            <div id="checkoutCartItems" class="space-y-3 mb-6 min-h-[80px]">
+              <div id="checkoutEmpty" class="text-center py-8 text-on-surface-variant">
+                <span class="material-symbols-outlined text-3xl text-slate-300 block mb-2">shopping_cart</span>
+                <p class="text-sm">No items yet. Add products above!</p>
+              </div>
+            </div>
+
+            <div class="border-t border-outline-variant/20 pt-5 space-y-3">
+              <div class="flex justify-between text-sm text-on-surface-variant">
+                <span>Subtotal</span>
+                <span id="checkoutSubtotal" class="font-semibold">KSh 0</span>
+              </div>
+              <div class="flex justify-between text-sm text-on-surface-variant">
+                <span>Delivery</span>
+                <span class="text-secondary font-semibold">Calculated at dispatch</span>
+              </div>
+              <div class="flex justify-between items-center pt-3 border-t border-outline-variant/20">
+                <span class="font-label font-bold text-sm uppercase tracking-widest">Total</span>
+                <span id="checkoutTotal" class="font-headline font-bold text-2xl text-primary">KSh 0</span>
+              </div>
+            </div>
+
+            <button id="placeOrderBtn" onclick="placeOrder()" class="w-full mt-6 water-gradient text-white py-4 rounded-xl font-label font-bold uppercase tracking-widest text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-lg">check_circle</span>
+              Place Order
+            </button>
+            <p class="text-center text-xs text-on-surface-variant mt-3">You'll receive a confirmation via WhatsApp/SMS</p>
+          </div>
+
+          <!-- Delivery info card -->
+          <div class="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10">
+            <h4 class="font-label font-bold text-sm uppercase tracking-widest text-on-surface-variant mb-4">Delivery Info</h4>
+            <div class="space-y-3 text-sm">
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-secondary text-base mt-0.5">check_circle</span>
+                <span>Free delivery in <strong>Mwihoko, Ruiru</strong> and Nairobi</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-secondary text-base mt-0.5">check_circle</span>
+                <span>Small fee for outside Nairobi (countrywide)</span>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-secondary text-base mt-0.5">check_circle</span>
+                <span>Same-day delivery on early orders</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Order Confirmation Modal -->
+<div id="orderModal" class="fixed inset-0 bg-black/50 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-3xl p-10 max-w-md w-full text-center pop-in shadow-2xl">
+    <div class="w-20 h-20 rounded-full bg-secondary-container flex items-center justify-center mx-auto mb-6">
+      <span class="material-symbols-outlined text-4xl text-secondary" style="font-variation-settings:'FILL' 1">check_circle</span>
+    </div>
+    <h2 class="font-headline font-bold text-2xl mb-2">Order Placed!</h2>
+    <p class="text-on-surface-variant mb-2" id="orderConfirmName"></p>
+    <p class="text-on-surface-variant text-sm mb-6">Our team will contact you shortly on WhatsApp to confirm delivery details and payment.</p>
+    <div id="orderSummaryModal" class="bg-surface-container-low rounded-xl p-4 text-left mb-6 text-sm space-y-2"></div>
+    <button onclick="closeModal()" class="w-full water-gradient text-white py-4 rounded-xl font-label font-bold uppercase tracking-widest text-sm">Done</button>
+  </div>
+</div>
+
+<!-- M-Pesa STK Push Modal -->
+<div id="mpesaModal" class="fixed inset-0 bg-black/50 z-[90] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-3xl p-10 max-w-sm w-full text-center shadow-2xl">
+
+    <!-- Waiting -->
+    <div id="mpesaWaiting">
+      <div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+        <span class="material-symbols-outlined text-4xl text-primary" style="animation:spin 1.2s linear infinite">autorenew</span>
+      </div>
+      <h2 class="font-headline font-bold text-2xl mb-2">Check Your Phone</h2>
+      <p class="text-on-surface-variant text-sm mb-1">M-Pesa prompt sent to</p>
+      <p id="mpesaPhoneDisplay" class="font-bold text-primary text-lg mb-1"></p>
+      <p class="text-on-surface-variant text-sm mb-6">Enter your PIN to pay <span id="mpesaAmountDisplay" class="font-bold text-primary"></span></p>
+      <div class="bg-surface-container-low rounded-xl p-4 text-sm text-on-surface-variant mb-4 flex items-center gap-3">
+        <span class="material-symbols-outlined text-base text-primary animate-pulse">schedule</span>
+        <span>Waiting for payment confirmation…</span>
+      </div>
+      <button onclick="cancelMpesaPayment()" class="text-xs text-slate-400 hover:text-slate-600 transition mt-2">Cancel</button>
+    </div>
+
+    <!-- Success -->
+    <div id="mpesaSuccess" class="hidden">
+      <div class="w-20 h-20 rounded-full bg-secondary-container flex items-center justify-center mx-auto mb-6 pop-in">
+        <span class="material-symbols-outlined text-4xl text-secondary" style="font-variation-settings:'FILL' 1">check_circle</span>
+      </div>
+      <h2 class="font-headline font-bold text-2xl mb-2">Payment Confirmed!</h2>
+      <p class="text-on-surface-variant">Your M-Pesa payment was successful. Placing your order…</p>
+    </div>
+
+    <!-- Failed -->
+    <div id="mpesaFailed" class="hidden">
+      <div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-6">
+        <span class="material-symbols-outlined text-4xl text-red-500" style="font-variation-settings:'FILL' 1">cancel</span>
+      </div>
+      <h2 class="font-headline font-bold text-2xl mb-2">Payment Failed</h2>
+      <p id="mpesaFailedMsg" class="text-on-surface-variant text-sm mb-6">The payment was not completed.</p>
+      <button onclick="closeMpesaModal()" class="w-full water-gradient text-white py-3 rounded-xl font-label font-bold uppercase tracking-widest text-sm">Try Again</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- CTA Banner -->
+<section class="py-20 bg-surface-container">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="water-gradient rounded-[2rem] p-12 md:p-16 text-center relative overflow-hidden shadow-2xl">
+      <div class="relative z-10">
+        <h2 class="text-4xl md:text-5xl font-headline font-extrabold text-white mb-6">Ready for a Refresher?</h2>
+        <p class="text-white/80 text-lg max-w-2xl mx-auto mb-10">Join thousands of households and businesses in Nairobi who trust Delwater for their daily hydration.</p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <button onclick="document.getElementById('checkout').scrollIntoView({behavior:'smooth'})" class="bg-white text-primary px-10 py-4 rounded-full font-label font-bold uppercase tracking-[0.2em] text-sm hover:bg-opacity-90 transition-all shadow-xl">Order Delivery</button>
+          <button onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})" class="bg-transparent border-2 border-white/30 text-white px-10 py-4 rounded-full font-label font-bold uppercase tracking-[0.2em] text-sm hover:bg-white/10 transition-all">Browse Products</button>
+        </div>
+      </div>
+      <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,white_0%,transparent_100%)]"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ─── FOOTER ─────────────────────────────────────── -->
+<footer class="bg-slate-50 border-t border-slate-200 font-body text-sm">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-7xl mx-auto px-6 py-12">
+    <div class="md:col-span-1">
+      <div class="flex items-center gap-3 mb-4">
+        <img src="data:image/png;base64,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" alt="DEL" class="h-8 w-auto">
+      </div>
+      <p class="text-slate-500 leading-relaxed text-sm">Pure hydration delivered with precision across Nairobi. Based in Mwihoko, Ruiru.</p>
+    </div>
+    <div>
+      <h4 class="font-headline font-bold text-blue-800 mb-4 uppercase tracking-widest text-xs">Navigation</h4>
+      <ul class="space-y-3 text-slate-500">
+        <li><a href="#home" class="hover:text-primary transition-colors">Home</a></li>
+        <li><a href="#products" class="hover:text-primary transition-colors">Products</a></li>
+        <li><a href="#refill" class="hover:text-primary transition-colors">Refill Services</a></li>
+        <li><a href="#checkout" class="hover:text-primary transition-colors">Checkout</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="font-headline font-bold text-blue-800 mb-4 uppercase tracking-widest text-xs">Products</h4>
+      <ul class="space-y-3 text-slate-500">
+        <li>500ml Pack (×24) — KSh 400</li>
+        <li>1L Pack (×12) — KSh 400</li>
+        <li>1.5L Pack (×9) — KSh 400</li>
+        <li>Custom Branded — KSh 700</li>
+        <li>5L / 10L / 20L Refills</li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="font-headline font-bold text-blue-800 mb-4 uppercase tracking-widest text-xs">Contact</h4>
+      <ul class="space-y-3 text-slate-500">
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">call</span> +254 702882491</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">mail</span> gidraffkamau@gmail.com</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">location_on</span> Mwihoko, Ruiru, Nairobi</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">schedule</span> Mon–Sat: 7am–8pm</li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-6 py-6 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-xs">
+    <p>© 2026 DELWATER LIMITED. Pure hydration delivered.</p>
+    <p>Mwihoko, Ruiru · Nairobi, Kenya</p>
+  </div>
+</footer>
+
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur border-t border-slate-100 z-50 px-4 py-2 flex justify-around shadow-2xl">
+  <a href="#home" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-primary transition-colors p-2">
+    <span class="material-symbols-outlined text-xl">home</span><span class="text-[9px] font-bold uppercase">Home</span>
+  </a>
+  <a href="#products" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-primary transition-colors p-2">
+    <span class="material-symbols-outlined text-xl">water_drop</span><span class="text-[9px] font-bold uppercase">Products</span>
+  </a>
+  <a href="#refill" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-primary transition-colors p-2">
+    <span class="material-symbols-outlined text-xl">local_shipping</span><span class="text-[9px] font-bold uppercase">Refills</span>
+  </a>
+  <button onclick="toggleCart()" class="relative flex flex-col items-center gap-0.5 text-slate-400 hover:text-primary transition-colors p-2">
+    <span class="material-symbols-outlined text-xl">shopping_cart</span>
+    <span id="mobileCartBadge" class="absolute top-1 right-1 bg-primary text-white text-[8px] font-bold rounded-full w-4 h-4 items-center justify-center hidden">0</span>
+    <span class="text-[9px] font-bold uppercase">Cart</span>
+  </button>
+  <a href="#checkout" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-primary transition-colors p-2">
+    <span class="material-symbols-outlined text-xl">receipt_long</span><span class="text-[9px] font-bold uppercase">Order</span>
+  </a>
+</nav>
+<div class="md:hidden h-16"></div>
+
+<script>
+// ─── CART STATE ──────────────────────────────────────
+let cart = [];
+
+function removeFromCart(name) {
+  cart = cart.filter(i => i.name !== name);
+  renderCart();
+  renderCheckoutSummary();
+  updateBadges();
+}
+
+function changeQty(name, delta) {
+  const item = cart.find(i => i.name === name);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) { removeFromCart(name); return; }
+  renderCart();
+  renderCheckoutSummary();
+  updateBadges();
+}
+
+function cartTotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
+function cartCount() { return cart.reduce((s, i) => s + i.qty, 0); }
+
+function updateBadges() {
+  const count = cartCount();
+  const show = count > 0;
+  ['cartCountBadge','cartCountBadgeDrawer','mobileCartBadge'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = count;
+    el.classList.toggle('hidden', !show);
+    el.classList.toggle('flex', show);
+  });
+}
+
+function renderCart() {
+  const list    = document.getElementById('cartItemsList');
+  const footer  = document.getElementById('cartFooter');
+  const totalEl = document.getElementById('cartTotalDrawer');
+  if (!list || !footer || !totalEl) return;
+
+  if (cart.length === 0) {
+    footer.classList.add('hidden');
+    list.innerHTML = `
+      <div class="flex flex-col items-center justify-center h-full py-16 text-center">
+        <span class="material-symbols-outlined text-5xl text-slate-300 mb-4">shopping_cart</span>
+        <p class="text-on-surface-variant font-medium">Your cart is empty</p>
+        <p class="text-sm text-outline mt-1">Add products to get started</p>
+      </div>`;
+    return;
+  }
+
+  footer.classList.remove('hidden');
+  totalEl.textContent = 'KSh ' + cartTotal().toLocaleString();
+  list.innerHTML = cart.map(item => `
+    <div class="cart-item-enter flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+      <div class="w-9 h-9 rounded-full ${item.type === 'refill' ? 'bg-secondary-container' : 'bg-blue-100'} flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined text-sm ${item.type === 'refill' ? 'text-secondary' : 'text-primary'}">water_drop</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold leading-tight truncate">${item.name}</p>
+        <p class="text-xs text-on-surface-variant">KSh ${item.price.toLocaleString()} × ${item.qty}</p>
+      </div>
+      <div class="flex items-center gap-1">
+        <button onclick="changeQty('${item.name.replace(/'/g,"\\'")}', -1)" class="w-6 h-6 rounded-full bg-slate-200 hover:bg-red-100 text-slate-600 hover:text-red-600 flex items-center justify-center text-sm font-bold transition-colors">-</button>
+        <span class="w-6 text-center text-sm font-bold">${item.qty}</span>
+        <button onclick="changeQty('${item.name.replace(/'/g,"\\'")}', 1)" class="w-6 h-6 rounded-full bg-slate-200 hover:bg-green-100 text-slate-600 hover:text-green-600 flex items-center justify-center text-sm font-bold transition-colors">+</button>
+      </div>
+      <p class="text-sm font-bold text-primary w-16 text-right">KSh ${(item.price * item.qty).toLocaleString()}</p>
+    </div>
+  `).join('');
+}
+
+function renderCheckoutSummary() {
+  const container = document.getElementById('checkoutCartItems');
+  const subtotalEl = document.getElementById('checkoutSubtotal');
+  const totalEl   = document.getElementById('checkoutTotal');
+  if (!container || !subtotalEl || !totalEl) return;
+
+  if (cart.length === 0) {
+    subtotalEl.textContent = 'KSh 0';
+    totalEl.textContent    = 'KSh 0';
+    container.innerHTML = `
+      <div class="text-center py-8 text-on-surface-variant">
+        <span class="material-symbols-outlined text-3xl text-slate-300 block mb-2">shopping_cart</span>
+        <p class="text-sm">No items yet. Add products above!</p>
+      </div>`;
+    return;
+  }
+
+  const total = cartTotal();
+  subtotalEl.textContent = 'KSh ' + total.toLocaleString();
+  totalEl.textContent    = 'KSh ' + total.toLocaleString();
+  container.innerHTML = cart.map(item => `
+    <div class="flex items-center justify-between py-2 border-b border-outline-variant/10 last:border-0 gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-7 h-7 rounded-full ${item.type === 'refill' ? 'bg-secondary-container' : 'bg-blue-100'} flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-xs ${item.type === 'refill' ? 'text-secondary' : 'text-primary'}">water_drop</span>
+        </div>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold truncate">${item.name}</p>
+          <p class="text-xs text-on-surface-variant">KSh ${item.price.toLocaleString()} each</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <div class="flex items-center gap-1">
+          <button onclick="changeQty('${item.name.replace(/'/g,"\\'")}', -1)" class="w-5 h-5 rounded-full bg-slate-100 hover:bg-red-100 text-xs font-bold flex items-center justify-center transition-colors">-</button>
+          <span class="text-xs font-bold w-5 text-center">${item.qty}</span>
+          <button onclick="changeQty('${item.name.replace(/'/g,"\\'")}', 1)" class="w-5 h-5 rounded-full bg-slate-100 hover:bg-green-100 text-xs font-bold flex items-center justify-center transition-colors">+</button>
+        </div>
+        <span class="text-sm font-bold text-primary w-16 text-right">KSh ${(item.price * item.qty).toLocaleString()}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── CART DRAWER ──────────────────────────────────────
+function addToCart(name, price, type) {
+  const existing = cart.find(i => i.name === name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({ name, price, qty: 1, type });
+  }
+
+  // Auto-open cart drawer so user always sees the update
+  const drawer = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('cartOverlay');
+  const isOpen = !drawer.classList.contains('translate-x-full');
+  if (!isOpen) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+    drawer.classList.remove('translate-x-full');
+  }
+
+  renderCart();
+  renderCheckoutSummary();
+  updateBadges();
+  showToast(name);
+}
+
+function goToCheckout() {
+  toggleCart();
+  setTimeout(() => document.getElementById('checkout').scrollIntoView({ behavior: 'smooth' }), 350);
+}
+
+function toggleCart() {
+  const drawer  = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('cartOverlay');
+  const isOpen  = !drawer.classList.contains('translate-x-full');
+  if (isOpen) {
+    drawer.classList.add('translate-x-full');
+    overlay.classList.add('opacity-0');
+    setTimeout(() => overlay.classList.add('hidden'), 300);
+  } else {
+    overlay.classList.remove('hidden');
+    setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+    drawer.classList.remove('translate-x-full');
+  }
+}
+
+// ─── TOAST ────────────────────────────────────────────
+function showToast(name) {
+  const existing = document.getElementById('cartToast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'cartToast';
+  toast.className = 'fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-[90] bg-on-surface text-white text-sm font-label font-semibold px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 transition-all';
+  toast.innerHTML = `<span class="material-symbols-outlined text-secondary-container text-base" style="font-variation-settings:'FILL' 1">check_circle</span> Added to cart`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.style.opacity = '0', 2000);
+  setTimeout(() => toast.remove(), 2400);
+}
+
+// ─── PAYMENT METHOD UI ────────────────────────────────
+document.getElementById('paymentMethods').addEventListener('change', (e) => {
+  document.querySelectorAll('.payment-card').forEach(c => {
+    c.classList.remove('border-primary', 'bg-primary/5');
+    c.classList.add('border-outline-variant');
+  });
+  const selected = e.target.closest('label').querySelector('.payment-card');
+  selected.classList.add('border-primary', 'bg-primary/5');
+  selected.classList.remove('border-outline-variant');
+  const hint = document.getElementById('mpesaHint');
+  hint.classList.toggle('hidden', e.target.value !== 'mpesa');
+});
+
+// ─── WHATSAPP NOTIFICATION CONFIG ────────────────────
+// HOW TO SET UP (one-time, takes 2 minutes):
+// 1. Add this number to your WhatsApp contacts: +34 644 65 21 91 (CallMeBot)
+// 2. Send this exact message to that contact on WhatsApp:
+//    "I allow callmebot to send me messages"
+// 3. You'll receive your API key in a reply within seconds
+// 4. Replace the values below with your real number and API key
+
+const OWNER_WHATSAPP_NUMBER = '254702882491'; // Your number WITHOUT + e.g. 254712345678
+const CALLMEBOT_API_KEY     = 'YOUR_API_KEY';  // API key from CallMeBot reply
+
+async function sendWhatsAppNotification(message) {
+  if (CALLMEBOT_API_KEY === 'YOUR_API_KEY') return; // not configured yet
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${OWNER_WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}&apikey=${CALLMEBOT_API_KEY}`;
+  try { await fetch(url, { mode: 'no-cors' }); } catch(e) { console.warn('WA notification failed:', e); }
+}
+
+// ─── ORDER PLACEMENT ─────────────────────────────────
+async function placeOrder() {
+  const name    = document.getElementById('co-name').value.trim();
+  const phone   = document.getElementById('co-phone').value.trim();
+  const address = document.getElementById('co-address').value.trim();
+  const city    = document.getElementById('co-city').value;
+
+  if (!name)    { alert('Please enter your full name.');        document.getElementById('co-name').focus();    return; }
+  if (!phone)   { alert('Please enter your phone number.');     document.getElementById('co-phone').focus();   return; }
+  if (!address) { alert('Please enter your delivery address.'); document.getElementById('co-address').focus(); return; }
+  if (!city)    { alert('Please select your town/city.');       document.getElementById('co-city').focus();    return; }
+  if (cart.length === 0) { alert('Your cart is empty! Please add items before placing your order.'); return; }
+
+  const payment       = document.querySelector('input[name="payment"]:checked')?.value || 'mpesa';
+  const paymentLabels = { mpesa: 'M-Pesa (STK Push)', cash: 'Cash on Delivery', bank: 'Bank Transfer' };
+  const date          = document.getElementById('co-date').value;
+  const notes         = document.getElementById('co-notes').value;
+  const email         = document.getElementById('co-email').value.trim();
+  const total         = cartTotal();
+  const orderRef      = 'DW-' + Date.now().toString().slice(-6);
+
+  const orderRecord = {
+    ref: orderRef,
+    timestamp: new Date().toISOString(),
+    customer: { name, phone, email, address, city },
+    items: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, type: i.type, subtotal: i.price * i.qty })),
+    total,
+    payment: paymentLabels[payment],
+    deliveryDate: date || '',
+    notes: notes || '',
+    status: 'Pending'
+  };
+
+  const btn = document.getElementById('placeOrderBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-symbols-outlined text-lg" style="animation:spin 1s linear infinite">autorenew</span> Processing…';
+
+  // ── M-PESA STK PUSH FLOW ──────────────────────────
+  if (payment === 'mpesa') {
+    const formattedPhone = formatPhoneKE(phone);
+    document.getElementById('mpesaPhoneDisplay').textContent  = formattedPhone;
+    document.getElementById('mpesaAmountDisplay').textContent = 'KSh ' + total.toLocaleString();
+
+    try {
+      const res  = await fetch('/mpesa/stkpush', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ phone: formattedPhone, amount: total, orderRef })
+      });
+      const data = await res.json();
+
+      if (!data.CheckoutRequestID) {
+        throw new Error(data.error || data.errorMessage || data.ResponseDescription || 'STK push failed. Please try again.');
+      }
+
+      showMpesaModal('waiting');
+      const result = await pollMpesaStatus(data.CheckoutRequestID);
+
+      if (result.status === 'success') {
+        showMpesaModal('success');
+        orderRecord.payment = 'M-Pesa (Paid ✅)';
+        orderRecord.status  = 'Confirmed';
+        saveOrder(orderRecord);
+        await sendWhatsAppNotification(buildWaMessage(orderRecord));
+        setTimeout(() => {
+          closeMpesaModal();
+          showOrderModal(orderRecord);
+        }, 2000);
+      } else {
+        showMpesaModal('failed', result.resultDesc || 'Payment cancelled or failed. Please try again.');
+      }
+    } catch(e) {
+      showMpesaModal('failed', e.message || 'Could not reach M-Pesa. Check your connection and try again.');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> Place Order';
+    return;
+  }
+
+  // ── CASH / BANK FLOW ─────────────────────────────
+  btn.innerHTML = '<span class="material-symbols-outlined text-lg" style="animation:spin 1s linear infinite">autorenew</span> Sending…';
+  await sendWhatsAppNotification(buildWaMessage(orderRecord));
+  saveOrder(orderRecord);
+  showOrderModal(orderRecord);
+
+  btn.disabled = false;
+  btn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> Place Order';
+}
+
+// ─── HELPERS ──────────────────────────────────────────
+
+function formatPhoneKE(phone) {
+  phone = String(phone).trim().replace(/[\s()\-]/g, '').replace(/^\+/, '');
+  if (phone.startsWith('0')) return '254' + phone.slice(1);
+  if (/^[71]/.test(phone))  return '254' + phone;
+  return phone;
+}
+
+function buildWaMessage(order) {
+  const itemLines = order.items.map(i => `  • ${i.name} x${i.qty} = KSh ${(i.price * i.qty).toLocaleString()}`).join('\n');
+  return [
+    `🚰 *NEW DELWATER ORDER* — ${order.ref}`,
+    ``,
+    `👤 *Customer:* ${order.customer.name}`,
+    `📞 *Phone:* ${order.customer.phone}`,
+    order.customer.email ? `📧 *Email:* ${order.customer.email}` : null,
+    ``,
+    `🛒 *Order:*`,
+    itemLines,
+    `💰 *Total: KSh ${order.total.toLocaleString()}*`,
+    ``,
+    `📍 *Delivery:* ${order.customer.address}, ${order.customer.city}`,
+    order.deliveryDate ? `📅 *Date:* ${order.deliveryDate}` : null,
+    order.notes        ? `📝 *Notes:* ${order.notes}`        : null,
+    ``,
+    `💳 *Payment:* ${order.payment}`,
+    ``,
+    `Reply to confirm delivery time.`
+  ].filter(Boolean).join('\n');
+}
+
+function saveOrder(orderRecord) {
+  try {
+    const orders = JSON.parse(localStorage.getItem('delwater_orders') || '[]');
+    orders.unshift(orderRecord);
+    localStorage.setItem('delwater_orders', JSON.stringify(orders));
+    const log = JSON.parse(localStorage.getItem('delwater_activity') || '[]');
+    log.unshift({ type: 'order', ref: orderRecord.ref, customer: orderRecord.customer.name, total: orderRecord.total, timestamp: new Date().toISOString() });
+    if (log.length > 500) log.length = 500;
+    localStorage.setItem('delwater_activity', JSON.stringify(log));
+  } catch(e) { console.warn('Storage save failed:', e); }
+  cart = [];
+  renderCart();
+  renderCheckoutSummary();
+  updateBadges();
+}
+
+function showOrderModal(order) {
+  document.getElementById('orderConfirmName').textContent = `Thank you, ${order.customer.name}! Your order has been received.`;
+  document.getElementById('orderSummaryModal').innerHTML = `
+    <div class="space-y-2 text-sm">
+      <div class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Order Ref: ${order.ref}</div>
+      ${order.items.map(i => `<div class="flex justify-between"><span>${i.name} ×${i.qty}</span><span class="font-bold">KSh ${(i.price * i.qty).toLocaleString()}</span></div>`).join('')}
+      <div class="border-t border-slate-200 pt-2 flex justify-between font-bold text-base"><span>Total</span><span class="text-primary">KSh ${order.total.toLocaleString()}</span></div>
+      <div class="border-t border-slate-200 pt-2 text-xs text-slate-500 space-y-1">
+        <div>📍 ${order.customer.address}, ${order.customer.city}</div>
+        <div>📞 ${order.customer.phone}</div>
+        <div>💳 ${order.payment}</div>
+        ${order.deliveryDate ? `<div>📅 ${order.deliveryDate}</div>` : ''}
+        ${order.notes        ? `<div>📝 ${order.notes}</div>`        : ''}
+      </div>
+    </div>
+  `;
+  const modal = document.getElementById('orderModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+// ─── M-PESA MODAL & POLLING ───────────────────────────
+let _mpesaPollTimer = null;
+
+function showMpesaModal(state, msg) {
+  const modal = document.getElementById('mpesaModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  ['mpesaWaiting','mpesaSuccess','mpesaFailed'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  document.getElementById(state === 'waiting' ? 'mpesaWaiting' : state === 'success' ? 'mpesaSuccess' : 'mpesaFailed').classList.remove('hidden');
+  if (state === 'failed' && msg) document.getElementById('mpesaFailedMsg').textContent = msg;
+}
+
+function closeMpesaModal() {
+  document.getElementById('mpesaModal').classList.add('hidden');
+  document.getElementById('mpesaModal').classList.remove('flex');
+  if (_mpesaPollTimer) { clearInterval(_mpesaPollTimer); _mpesaPollTimer = null; }
+}
+
+function cancelMpesaPayment() { closeMpesaModal(); }
+
+function pollMpesaStatus(checkoutRequestId) {
+  return new Promise((resolve) => {
+    let attempts = 0;
+    _mpesaPollTimer = setInterval(async () => {
+      attempts++;
+      try {
+        const r = await fetch(`/mpesa/status/${encodeURIComponent(checkoutRequestId)}`);
+        const d = await r.json();
+        if (d.status !== 'pending' && d.status !== 'unknown') {
+          clearInterval(_mpesaPollTimer); _mpesaPollTimer = null;
+          resolve(d);
+          return;
+        }
+      } catch(e) { /* keep polling */ }
+      if (attempts >= 20) { // 60 seconds
+        clearInterval(_mpesaPollTimer); _mpesaPollTimer = null;
+        resolve({ status: 'failed', resultDesc: 'Payment timed out. Please try again.' });
+      }
+    }, 3000);
+  });
+}
+
+function closeModal() {
+  const modal = document.getElementById('orderModal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  // Clear form
+  ['co-name','co-phone','co-email','co-address','co-date','co-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('co-city').value = '';
+}
+
+// ─── ACTIVE NAV LINKS ─────────────────────────────────
+const sections = ['home','products','refill','checkout'];
+const navLinks = document.querySelectorAll('.nav-link');
+function updateActiveNav() {
+  let current = 'home';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 120) current = id;
+  });
+  navLinks.forEach(a => {
+    const href = a.getAttribute('href')?.replace('#','');
+    a.classList.toggle('active', href === current);
+  });
+}
+window.addEventListener('scroll', updateActiveNav, { passive: true });
+updateActiveNav();
+
+// Init
+renderCart();
+renderCheckoutSummary();
+</script>
+</body>
+</html>
