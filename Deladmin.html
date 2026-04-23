@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DELWATER Admin Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { headline: ['Manrope'], body: ['Plus Jakarta Sans'] },
+    colors: { primary: '#00609a', secondary: '#046a63' }
+  }}
+}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .water-gradient { background: linear-gradient(135deg, #00609a 0%, #0079c1 100%); }
+  .sidebar-link { @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:bg-white/10 hover:text-white; }
+  .sidebar-link.active { @apply bg-white/15 text-white; }
+  .stat-card { @apply bg-white rounded-2xl p-6 shadow-sm border border-slate-100; }
+  .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold; }
+  #loginScreen, #appScreen { transition: opacity 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation: fadeIn 0.3s ease forwards; }
+  .table-row:hover { background: #f8fafc; }
+  input[type="text"], input[type="password"], input[type="date"], select {
+    @apply border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition bg-white;
+  }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+<!-- ═══════════════════════════════════
+     LOGIN SCREEN
+     ═══════════════════════════════════ -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-sm fade-in">
+    <div class="text-center mb-8">
+      <div class="water-gradient w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+        <span class="material-symbols-outlined filled text-white text-3xl">water_drop</span>
+      </div>
+      <h1 class="font-headline font-bold text-2xl text-slate-800">DELWATER Admin</h1>
+      <p class="text-slate-500 text-sm mt-1">Sign in to your dashboard</p>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+      <div id="loginError" class="hidden mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 flex items-center gap-2">
+        <span class="material-symbols-outlined text-base">error</span>
+        <span>Incorrect username or password.</span>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Username</label>
+          <input id="loginUser" type="text" placeholder="admin" class="w-full" onkeydown="if(event.key==='Enter') doLogin()">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Password</label>
+          <div class="relative">
+            <input id="loginPass" type="password" placeholder="••••••••" class="w-full pr-10" onkeydown="if(event.key==='Enter') doLogin()">
+            <button onclick="togglePw()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <span id="pwEye" class="material-symbols-outlined text-base">visibility</span>
+            </button>
+          </div>
+        </div>
+        <button onclick="doLogin()" class="w-full water-gradient text-white py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:opacity-90 transition mt-2">
+          Sign In
+        </button>
+      </div>
+      <p class="text-center text-xs text-slate-400 mt-6">
+        Default: <code class="bg-slate-100 px-1 py-0.5 rounded">admin</code> / <code class="bg-slate-100 px-1 py-0.5 rounded">delwater2026</code>
+      </p>
+    </div>
+    <p class="text-center text-xs text-slate-400 mt-4">Change credentials in the Settings tab after login.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     MAIN APP
+     ═══════════════════════════════════ -->
+<div id="appScreen" class="hidden min-h-screen flex">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 water-gradient flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-40 shadow-2xl">
+    <div class="px-6 py-6 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined filled text-white text-xl">water_drop</span>
+        </div>
+        <div>
+          <p class="font-headline font-bold text-white text-sm leading-tight">DELWATER</p>
+          <p class="text-blue-200 text-xs">Admin Panel</p>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 px-3 py-4 space-y-1">
+      <button onclick="showTab('dashboard')" class="sidebar-link active w-full text-left" id="nav-dashboard">
+        <span class="material-symbols-outlined text-lg">dashboard</span> Dashboard
+      </button>
+      <button onclick="showTab('orders')" class="sidebar-link w-full text-left" id="nav-orders">
+        <span class="material-symbols-outlined text-lg">receipt_long</span> Orders
+        <span id="pendingBadge" class="ml-auto bg-orange-400 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 hidden">0</span>
+      </button>
+      <button onclick="showTab('activity')" class="sidebar-link w-full text-left" id="nav-activity">
+        <span class="material-symbols-outlined text-lg">timeline</span> Activity Log
+      </button>
+      <button onclick="showTab('reports')" class="sidebar-link w-full text-left" id="nav-reports">
+        <span class="material-symbols-outlined text-lg">bar_chart</span> Reports
+      </button>
+      <button onclick="showTab('connections')" class="sidebar-link w-full text-left" id="nav-connections">
+        <span class="material-symbols-outlined text-lg">water_drop</span> Connections
+      </button>
+      <button onclick="showTab('settings')" class="sidebar-link w-full text-left" id="nav-settings">
+        <span class="material-symbols-outlined text-lg">settings</span> Settings
+      </button>
+    </nav>
+    <div class="px-3 py-4 border-t border-white/10">
+      <div class="flex items-center gap-3 px-4 py-3 mb-2">
+        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-sm font-bold" id="avatarInitial">A</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-white text-sm font-semibold truncate" id="sidebarUsername">admin</p>
+          <p class="text-blue-200 text-xs">Administrator</p>
+        </div>
+      </div>
+      <button onclick="doLogout()" class="sidebar-link w-full text-left hover:bg-red-500/20 hover:text-red-200">
+        <span class="material-symbols-outlined text-lg">logout</span> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="ml-64 flex-1 min-h-screen">
+
+    <!-- Top bar -->
+    <header class="sticky top-0 bg-white/90 backdrop-blur border-b border-slate-100 z-30 px-8 py-4 flex items-center justify-between">
+      <div>
+        <h1 id="pageTitle" class="font-headline font-bold text-xl text-slate-800">Dashboard</h1>
+        <p id="pageSubtitle" class="text-xs text-slate-400 mt-0.5">Overview of all activity</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="lastRefresh" class="text-xs text-slate-400"></span>
+        <button onclick="refreshData()" class="flex items-center gap-2 text-sm text-slate-600 border border-slate-200 hover:border-primary hover:text-primary transition px-3 py-2 rounded-xl">
+          <span class="material-symbols-outlined text-base">refresh</span> Refresh
+        </button>
+        <a href="DelwaterFull.html" target="_blank" class="flex items-center gap-2 text-sm water-gradient text-white px-4 py-2 rounded-xl font-semibold hover:opacity-90 transition">
+          <span class="material-symbols-outlined text-base">open_in_new</span> View Website
+        </a>
+      </div>
+    </header>
+
+    <div class="p-8">
+
+      <!-- ── DASHBOARD TAB ── -->
+      <div id="tab-dashboard" class="fade-in">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Total Orders</p>
+              <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary text-lg filled">receipt_long</span>
+              </div>
+            </div>
+            <p class="font-headline font-bold text-3xl text-slate-800" id="stat-total">0</p>
+            <p class="text-xs text-slate-400 mt-1" id="stat-total-sub">All time</p>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Revenue</p>
+              <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-green-600 text-lg filled">payments</span>
+              </div>
+            </div>
+            <p class="font-headline font-bold text-3xl text-slate-800" id="stat-revenue">KSh 0</p>
+            <p class="text-xs text-slate-400 mt-1">All orders</p>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Pending</p>
+              <div class="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-orange-500 text-lg filled">pending</span>
+              </div>
+            </div>
+            <p class="font-headline font-bold text-3xl text-slate-800" id="stat-pending">0</p>
+            <p class="text-xs text-slate-400 mt-1">Awaiting action</p>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Today</p>
+              <div class="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-purple-600 text-lg filled">today</span>
+              </div>
+            </div>
+            <p class="font-headline font-bold text-3xl text-slate-800" id="stat-today">0</p>
+            <p class="text-xs text-slate-400 mt-1">Orders today</p>
+          </div>
+        </div>
+
+        <!-- Recent orders + top products -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 class="font-headline font-bold text-base text-slate-800">Recent Orders</h3>
+              <button onclick="showTab('orders')" class="text-xs text-primary font-semibold hover:underline">View all</button>
+            </div>
+            <div id="recentOrdersList" class="divide-y divide-slate-50"></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100">
+              <h3 class="font-headline font-bold text-base text-slate-800">Top Products</h3>
+            </div>
+            <div id="topProductsList" class="p-4 space-y-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ORDERS TAB ── -->
+      <div id="tab-orders" class="hidden fade-in">
+        <!-- Filters -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6 flex flex-wrap gap-4 items-end">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Search</label>
+            <input id="orderSearch" type="text" placeholder="Name, phone, ref..." class="w-52" oninput="filterOrders()">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Status</label>
+            <select id="orderStatusFilter" class="w-40" onchange="filterOrders()">
+              <option value="">All statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">From</label>
+            <input id="dateFrom" type="date" class="w-40" onchange="filterOrders()">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">To</label>
+            <input id="dateTo" type="date" class="w-40" onchange="filterOrders()">
+          </div>
+          <div class="ml-auto flex gap-2">
+            <button onclick="clearOrderFilters()" class="px-4 py-2.5 border border-slate-200 rounded-xl text-sm hover:bg-slate-50 transition">Clear</button>
+            <button onclick="exportOrdersCSV()" class="flex items-center gap-2 px-4 py-2.5 water-gradient text-white rounded-xl text-sm font-semibold hover:opacity-90 transition">
+              <span class="material-symbols-outlined text-base">download</span> Export CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-headline font-bold text-base text-slate-800">All Orders</h3>
+            <span id="ordersCount" class="text-xs text-slate-400"></span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50 text-xs uppercase tracking-widest text-slate-500 font-bold">
+                <tr>
+                  <th class="px-5 py-3 text-left">Ref</th>
+                  <th class="px-5 py-3 text-left">Date & Time</th>
+                  <th class="px-5 py-3 text-left">Customer</th>
+                  <th class="px-5 py-3 text-left">Phone</th>
+                  <th class="px-5 py-3 text-left">Area</th>
+                  <th class="px-5 py-3 text-right">Total</th>
+                  <th class="px-5 py-3 text-left">Payment</th>
+                  <th class="px-5 py-3 text-left">Status</th>
+                  <th class="px-5 py-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody" class="divide-y divide-slate-50"></tbody>
+            </table>
+            <div id="ordersEmpty" class="hidden py-16 text-center">
+              <span class="material-symbols-outlined text-4xl text-slate-300 block mb-2">receipt_long</span>
+              <p class="text-slate-400 text-sm">No orders found</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ORDER DETAIL MODAL ── -->
+      <div id="orderDetailModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="closeOrderDetail(event)">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+          <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-headline font-bold text-lg" id="detailRef">Order Details</h3>
+            <button onclick="document.getElementById('orderDetailModal').classList.add('hidden')" class="p-2 hover:bg-slate-100 rounded-full transition">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div id="orderDetailContent" class="p-6"></div>
+        </div>
+      </div>
+
+      <!-- ── ACTIVITY TAB ── -->
+      <div id="tab-activity" class="hidden fade-in">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="font-headline font-bold text-base text-slate-800">Activity Log</h3>
+            <button onclick="clearActivity()" class="text-xs text-red-500 hover:text-red-700 font-semibold border border-red-200 hover:border-red-400 px-3 py-1.5 rounded-lg transition">Clear Log</button>
+          </div>
+          <div id="activityList" class="divide-y divide-slate-50 max-h-[70vh] overflow-y-auto"></div>
+          <div id="activityEmpty" class="hidden py-16 text-center">
+            <span class="material-symbols-outlined text-4xl text-slate-300 block mb-2">timeline</span>
+            <p class="text-slate-400 text-sm">No activity recorded yet</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REPORTS TAB ── -->
+      <div id="tab-reports" class="hidden fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <!-- Summary card -->
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <h3 class="font-headline font-bold text-base text-slate-800 mb-5">Sales Summary</h3>
+            <div id="salesSummary" class="space-y-4"></div>
+          </div>
+          <!-- Product breakdown -->
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <h3 class="font-headline font-bold text-base text-slate-800 mb-5">Product Breakdown</h3>
+            <div id="productBreakdown" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <!-- Download section -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <h3 class="font-headline font-bold text-base text-slate-800 mb-2">Download Reports</h3>
+          <p class="text-sm text-slate-500 mb-6">Export your order and activity data as CSV files you can open in Excel or Google Sheets.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="border border-slate-200 rounded-xl p-5 hover:border-primary hover:shadow-sm transition">
+              <span class="material-symbols-outlined text-primary text-3xl mb-3 block filled">receipt_long</span>
+              <h4 class="font-bold text-sm mb-1">All Orders</h4>
+              <p class="text-xs text-slate-500 mb-4">Every order with full details, customer info and items.</p>
+              <button onclick="exportOrdersCSV()" class="w-full water-gradient text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">download</span> Download CSV
+              </button>
+            </div>
+            <div class="border border-slate-200 rounded-xl p-5 hover:border-primary hover:shadow-sm transition">
+              <span class="material-symbols-outlined text-secondary text-3xl mb-3 block filled">inventory_2</span>
+              <h4 class="font-bold text-sm mb-1">Products Report</h4>
+              <p class="text-xs text-slate-500 mb-4">Units sold and revenue per product line.</p>
+              <button onclick="exportProductsCSV()" class="w-full bg-secondary text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">download</span> Download CSV
+              </button>
+            </div>
+            <div class="border border-slate-200 rounded-xl p-5 hover:border-primary hover:shadow-sm transition">
+              <span class="material-symbols-outlined text-purple-600 text-3xl mb-3 block filled">timeline</span>
+              <h4 class="font-bold text-sm mb-1">Activity Log</h4>
+              <p class="text-xs text-slate-500 mb-4">All recorded activity events with timestamps.</p>
+              <button onclick="exportActivityCSV()" class="w-full bg-purple-600 text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:opacity-90 transition flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">download</span> Download CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CONNECTIONS TAB ── -->
+      <div id="tab-connections" class="hidden fade-in">
+
+        <!-- Summary cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Total Clients</p>
+              <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary text-lg filled">group</span>
+              </div>
+            </div>
+            <p class="font-headline font-bold text-3xl text-slate-800" id="conn-total-clients">0</p>
+            <p class="text-xs text-slate-400 mt-1">Connected members</p>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Month Billed</p>
+              <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary text-lg filled">receipt</span>
+              </div>
+            </div>
+            <p class="font-headline font-bold text-2xl text-slate-800" id="conn-month-billed">KSh 0</p>
+            <p class="text-xs text-slate-400 mt-1" id="conn-month-label">Current month</p>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Month Collected</p>
+              <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-green-600 text-lg filled">payments</span>
+              </div>
+            </div>
+            <p class="font-headline font-bold text-2xl text-slate-800" id="conn-month-paid">KSh 0</p>
+            <p class="text-xs text-green-500 mt-1" id="conn-collection-rate">0% collection rate</p>
+          </div>
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Outstanding</p>
+              <div class="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-orange-500 text-lg filled">warning</span>
+              </div>
+            </div>
+            <p class="font-headline font-bold text-2xl text-slate-800" id="conn-outstanding">KSh 0</p>
+            <p class="text-xs text-orange-500 mt-1" id="conn-outstanding-count">0 clients with balance</p>
+          </div>
+        </div>
+
+        <!-- Controls bar -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6 flex flex-wrap items-center gap-3">
+          <div class="flex-1 min-w-48">
+            <input id="conn-search" type="text" placeholder="Search by name, member no or phone…"
+              oninput="renderConnections()"
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-white">
+          </div>
+          <select id="conn-month-filter" onchange="renderConnections(); updateConnSummary()"
+            class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white">
+          </select>
+          <select id="conn-balance-filter" onchange="renderConnections()"
+            class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white">
+            <option value="all">All clients</option>
+            <option value="balance">Has balance</option>
+            <option value="clear">Fully paid</option>
+            <option value="unread">No reading</option>
+          </select>
+          <button onclick="openAddClientModal()" class="flex items-center gap-2 water-gradient text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90 transition">
+            <span class="material-symbols-outlined text-base">person_add</span> Add Client
+          </button>
+          <button onclick="exportConnectionsCSV()" class="flex items-center gap-2 text-sm text-slate-600 border border-slate-200 hover:border-primary hover:text-primary transition px-3 py-2.5 rounded-xl">
+            <span class="material-symbols-outlined text-base">download</span> Export
+          </button>
+        </div>
+
+        <!-- Client table -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-slate-100 bg-slate-50">
+                  <th class="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">No.</th>
+                  <th class="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Name</th>
+                  <th class="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Phone</th>
+                  <th class="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Prev</th>
+                  <th class="text-left px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Current</th>
+                  <th class="text-right px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Units</th>
+                  <th class="text-right px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Amount</th>
+                  <th class="text-right px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Paid</th>
+                  <th class="text-right px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Balance</th>
+                  <th class="text-center px-5 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="conn-table-body">
+                <tr><td colspan="10" class="text-center py-12 text-slate-400">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="conn-pagination" class="flex justify-between items-center px-5 py-3 border-t border-slate-100 text-xs text-slate-400"></div>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS TAB ── -->
+      <div id="tab-settings" class="hidden fade-in">
+        <div class="max-w-lg space-y-6">
+          <!-- Change credentials -->
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <h3 class="font-headline font-bold text-base text-slate-800 mb-5">Change Login Credentials</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">New Username</label>
+                <input id="newUsername" type="text" class="w-full" placeholder="Enter new username">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">New Password</label>
+                <input id="newPassword" type="password" class="w-full" placeholder="Enter new password">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Confirm Password</label>
+                <input id="confirmPassword" type="password" class="w-full" placeholder="Re-enter new password">
+              </div>
+              <div id="credMsg" class="hidden text-sm rounded-xl px-4 py-3"></div>
+              <button onclick="saveCredentials()" class="w-full water-gradient text-white py-3 rounded-xl font-bold text-sm uppercase tracking-widest hover:opacity-90 transition">
+                Save Credentials
+              </button>
+            </div>
+          </div>
+
+          <!-- Danger zone -->
+          <div class="bg-white rounded-2xl border border-red-100 shadow-sm p-6">
+            <h3 class="font-headline font-bold text-base text-red-700 mb-2">Danger Zone</h3>
+            <p class="text-sm text-slate-500 mb-5">These actions are irreversible. All data is stored in this browser only.</p>
+            <div class="space-y-3">
+              <button onclick="clearAllOrders()" class="w-full border border-red-200 text-red-600 hover:bg-red-50 py-3 rounded-xl font-bold text-sm transition">
+                Delete All Orders
+              </button>
+              <button onclick="clearAllData()" class="w-full bg-red-600 text-white hover:bg-red-700 py-3 rounded-xl font-bold text-sm transition">
+                Clear All Data & Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /p-8 -->
+  </main>
+</div>
+
+<script>
+// ─── AUTH ──────────────────────────────────────────────
+const DEFAULT_USER = 'admin';
+const DEFAULT_PASS = 'delwater2026';
+
+
+function getCreds() {
+  return {
+    user: localStorage.getItem('dw_admin_user') || DEFAULT_USER,
+    pass: localStorage.getItem('dw_admin_pass') || DEFAULT_PASS
+  };
+}
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const creds = getCreds();
+  if (u === creds.user && p === creds.pass) {
+    localStorage.setItem('dw_admin_session', '1');
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+    document.getElementById('sidebarUsername').textContent = u;
+    document.getElementById('avatarInitial').textContent = u[0].toUpperCase();
+    refreshData();
+    logActivity('login', `Admin "${u}" logged in`);
+  } else {
+    document.getElementById('loginError').classList.remove('hidden');
+    document.getElementById('loginPass').value = '';
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('dw_admin_session');
+  location.reload();
+}
+
+function togglePw() {
+  const inp = document.getElementById('loginPass');
+  const eye = document.getElementById('pwEye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = 'visibility_off'; }
+  else { inp.type = 'password'; eye.textContent = 'visibility'; }
+}
+
+// Check existing session
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('dw_admin_session')) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appScreen').classList.remove('hidden');
+    const creds = getCreds();
+    document.getElementById('sidebarUsername').textContent = creds.user;
+    document.getElementById('avatarInitial').textContent = creds.user[0].toUpperCase();
+    refreshData();
+  }
+  // Set default dates for filter (last 30 days)
+  const now = new Date();
+  const from = new Date(); from.setDate(now.getDate() - 30);
+  document.getElementById('dateTo').value   = now.toISOString().split('T')[0];
+  document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
+});
+
+// ─── DATA ──────────────────────────────────────────────
+function getOrders()   { try { return JSON.parse(localStorage.getItem('delwater_orders') || '[]'); } catch { return []; } }
+function getActivity() { try { return JSON.parse(localStorage.getItem('delwater_activity') || '[]'); } catch { return []; } }
+function saveOrders(orders) { localStorage.setItem('delwater_orders', JSON.stringify(orders)); }
+
+function logActivity(type, message) {
+  const log = getActivity();
+  log.unshift({ type, message, timestamp: new Date().toISOString() });
+  if (log.length > 500) log.length = 500;
+  localStorage.setItem('delwater_activity', JSON.stringify(log));
+}
+
+function refreshData() {
+  const now = new Date().toLocaleTimeString();
+  document.getElementById('lastRefresh').textContent = `Updated ${now}`;
+  renderDashboard();
+  renderOrders();
+  renderActivity();
+  renderReports();
+}
+
+// ─── TABS ──────────────────────────────────────────────
+const tabTitles = {
+  dashboard: ["Dashboard", "Overview"],
+  orders: ["Orders", "Manage orders"],
+  activity: ["Activity Log", "System activity"],
+  reports: ["Reports", "Analytics"],
+  connections: ["Connections", "Water connections"], // ✅ MUST exist
+  settings: ["Settings", "Configuration"]
+};
+
+function showTab(tab) {
+  const sections = ['dashboard','orders','activity','reports','connections','settings'];
+
+  sections.forEach(t => {
+    document.getElementById('tab-' + t)?.classList.add('hidden');
+    document.getElementById('nav-' + t)?.classList.remove('active');
+  });
+
+  document.getElementById('tab-' + tab)?.classList.remove('hidden');
+  document.getElementById('nav-' + tab)?.classList.add('active');
+
+  const titleData = tabTitles[tab];
+
+  const title = titleData?.[0] || "Unknown";
+  const sub = titleData?.[1] || "";
+
+  document.getElementById('pageTitle').textContent = title;
+  document.getElementById('pageSubtitle').textContent = sub;
+
+  const el = document.getElementById('tab-' + tab);
+  if (el) {
+    el.classList.remove('fade-in');
+    void el.offsetWidth;
+    el.classList.add('fade-in');
+  }
+
+  // connections init
+  if (tab === 'connections') {
+    populateMonthFilter();
+    updateConnSummary();
+    renderConnections();
+  }
+}
+
+// ─── DASHBOARD ─────────────────────────────────────────
+function renderDashboard() {
+  const orders = getOrders();
+  const today  = new Date().toISOString().split('T')[0];
+  const total   = orders.length;
+  const revenue = orders.reduce((s,o) => s + (o.total||0), 0);
+  const pending = orders.filter(o => o.status === 'Pending').length;
+  const todayN  = orders.filter(o => (o.timestamp||'').startsWith(today)).length;
+
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-revenue').textContent = 'KSh ' + revenue.toLocaleString();
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-today').textContent   = todayN;
+
+  // Pending badge in nav
+  const pb = document.getElementById('pendingBadge');
+  pb.textContent = pending;
+  pb.classList.toggle('hidden', pending === 0);
+
+  // Recent orders list
+  const recentEl = document.getElementById('recentOrdersList');
+  const recent = orders.slice(0, 8);
+  if (recent.length === 0) {
+    recentEl.innerHTML = `<div class="py-12 text-center text-slate-400 text-sm">No orders yet</div>`;
+  } else {
+    recentEl.innerHTML = recent.map(o => `
+      <div class="flex items-center gap-4 px-5 py-3 table-row cursor-pointer" onclick="openOrderDetail('${o.ref}')">
+        <div class="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-primary text-base filled">person</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-sm text-slate-800 truncate">${o.customer?.name || '—'}</p>
+          <p class="text-xs text-slate-400">${o.ref} · ${fmtDate(o.timestamp)}</p>
+        </div>
+        <div class="text-right">
+          <p class="font-bold text-sm text-primary">KSh ${(o.total||0).toLocaleString()}</p>
+          <span class="${statusBadgeClass(o.status)} badge">${o.status||'Pending'}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Top products
+  const productMap = {};
+  orders.forEach(o => {
+    (o.items||[]).forEach(i => {
+      if (!productMap[i.name]) productMap[i.name] = { qty: 0, revenue: 0 };
+      productMap[i.name].qty     += i.qty || 0;
+      productMap[i.name].revenue += i.subtotal || 0;
+    });
+  });
+  const sorted = Object.entries(productMap).sort((a,b) => b[1].revenue - a[1].revenue).slice(0, 6);
+  const maxRev = sorted[0]?.[1]?.revenue || 1;
+  document.getElementById('topProductsList').innerHTML = sorted.length === 0
+    ? `<p class="text-sm text-slate-400 text-center py-4">No data yet</p>`
+    : sorted.map(([name, d]) => `
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="font-semibold text-slate-700 truncate max-w-[180px]">${name}</span>
+            <span class="text-primary font-bold ml-2">KSh ${d.revenue.toLocaleString()}</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-primary rounded-full" style="width:${Math.round(d.revenue/maxRev*100)}%"></div>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-0.5">${d.qty} units sold</p>
+        </div>
+      `).join('');
+}
+
+// ─── ORDERS TABLE ──────────────────────────────────────
+let filteredOrders = [];
+
+function renderOrders() {
+  filterOrders();
+}
+
+function filterOrders() {
+  const orders = getOrders();
+  const search = document.getElementById('orderSearch')?.value.toLowerCase() || '';
+  const status = document.getElementById('orderStatusFilter')?.value || '';
+  const from   = document.getElementById('dateFrom')?.value || '';
+  const to     = document.getElementById('dateTo')?.value   || '';
+
+  filteredOrders = orders.filter(o => {
+    const matchSearch = !search || (
+      (o.customer?.name||'').toLowerCase().includes(search) ||
+      (o.customer?.phone||'').includes(search) ||
+      (o.ref||'').toLowerCase().includes(search)
+    );
+    const matchStatus = !status || o.status === status;
+    const oDate = (o.timestamp||'').split('T')[0];
+    const matchFrom = !from || oDate >= from;
+    const matchTo   = !to   || oDate <= to;
+    return matchSearch && matchStatus && matchFrom && matchTo;
+  });
+
+  const tbody  = document.getElementById('ordersTableBody');
+  const empty  = document.getElementById('ordersEmpty');
+  const countEl = document.getElementById('ordersCount');
+  countEl.textContent = `${filteredOrders.length} order${filteredOrders.length !== 1 ? 's' : ''}`;
+
+  if (filteredOrders.length === 0) {
+    tbody.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  tbody.innerHTML = filteredOrders.map(o => `
+    <tr class="table-row cursor-pointer" onclick="openOrderDetail('${o.ref}')">
+      <td class="px-5 py-3 font-mono text-xs text-slate-500">${o.ref}</td>
+      <td class="px-5 py-3 text-xs text-slate-600">${fmtDate(o.timestamp)}</td>
+      <td class="px-5 py-3 font-semibold text-sm text-slate-800">${o.customer?.name||'—'}</td>
+      <td class="px-5 py-3 text-sm text-slate-600">${o.customer?.phone||'—'}</td>
+      <td class="px-5 py-3 text-sm text-slate-600">${o.customer?.city||'—'}</td>
+      <td class="px-5 py-3 text-right font-bold text-primary text-sm">KSh ${(o.total||0).toLocaleString()}</td>
+      <td class="px-5 py-3 text-xs text-slate-600">${o.payment||'—'}</td>
+      <td class="px-5 py-3">
+        <select class="text-xs border rounded-lg px-2 py-1 ${statusSelectClass(o.status)}" 
+          onchange="updateStatus('${o.ref}', this.value); event.stopPropagation()" 
+          onclick="event.stopPropagation()">
+          ${['Pending','Confirmed','Delivered','Cancelled'].map(s => `<option ${s===o.status?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td class="px-5 py-3 text-center">
+        <button onclick="openOrderDetail('${o.ref}'); event.stopPropagation()" class="p-1.5 hover:bg-slate-100 rounded-lg transition" title="View details">
+          <span class="material-symbols-outlined text-base text-slate-400">open_in_new</span>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function clearOrderFilters() {
+  document.getElementById('orderSearch').value = '';
+  document.getElementById('orderStatusFilter').value = '';
+  const now = new Date(); const from = new Date(); from.setDate(now.getDate()-30);
+  document.getElementById('dateTo').value   = now.toISOString().split('T')[0];
+  document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
+  filterOrders();
+}
+
+function updateStatus(ref, status) {
+  const orders = getOrders();
+  const idx = orders.findIndex(o => o.ref === ref);
+  if (idx >= 0) {
+    orders[idx].status = status;
+    saveOrders(orders);
+    logActivity('status', `Order ${ref} marked as "${status}"`);
+    renderDashboard();
+    renderReports();
+  }
+}
+
+// ─── ORDER DETAIL ──────────────────────────────────────
+function openOrderDetail(ref) {
+  const order = getOrders().find(o => o.ref === ref);
+  if (!order) return;
+  document.getElementById('detailRef').textContent = `Order ${ref}`;
+  document.getElementById('orderDetailContent').innerHTML = `
+    <div class="space-y-5 text-sm">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-slate-50 rounded-xl p-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Customer</p>
+          <p class="font-bold text-slate-800">${order.customer?.name||'—'}</p>
+          <p class="text-slate-600">${order.customer?.phone||''}</p>
+          <p class="text-slate-600">${order.customer?.email||''}</p>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Delivery</p>
+          <p class="font-bold text-slate-800">${order.customer?.city||'—'}</p>
+          <p class="text-slate-600 text-xs">${order.customer?.address||''}</p>
+          ${order.deliveryDate ? `<p class="text-slate-600 mt-1">📅 ${order.deliveryDate}</p>` : ''}
+        </div>
+      </div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Items Ordered</p>
+        <div class="space-y-2">
+          ${(order.items||[]).map(i => `
+            <div class="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
+              <div>
+                <p class="font-semibold text-slate-800">${i.name}</p>
+                <p class="text-xs text-slate-400">KSh ${i.price.toLocaleString()} × ${i.qty}</p>
+              </div>
+              <p class="font-bold text-primary">KSh ${i.subtotal.toLocaleString()}</p>
+            </div>
+          `).join('')}
+        </div>
+        <div class="flex justify-between items-center pt-3 mt-2 border-t border-slate-200">
+          <span class="font-bold text-base">Total</span>
+          <span class="font-headline font-bold text-xl text-primary">KSh ${(order.total||0).toLocaleString()}</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Payment</p>
+          <p class="font-semibold">${order.payment||'—'}</p>
+        </div>
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Date Placed</p>
+          <p class="font-semibold">${fmtDate(order.timestamp)}</p>
+        </div>
+      </div>
+      ${order.notes ? `<div class="bg-amber-50 border border-amber-200 rounded-xl p-4"><p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-1">Notes</p><p class="text-slate-700">${order.notes}</p></div>` : ''}
+      <div>
+        <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Update Status</p>
+        <div class="flex gap-2 flex-wrap">
+          ${['Pending','Confirmed','Delivered','Cancelled'].map(s => `
+            <button onclick="updateStatus('${ref}','${s}'); document.getElementById('orderDetailModal').classList.add('hidden'); filterOrders()" 
+              class="px-4 py-2 rounded-xl text-xs font-bold border transition ${s===order.status ? 'bg-primary text-white border-primary' : 'border-slate-200 hover:border-primary hover:text-primary'}">
+              ${s}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('orderDetailModal').classList.remove('hidden');
+}
+
+function closeOrderDetail(e) {
+  if (e.target === document.getElementById('orderDetailModal'))
+    document.getElementById('orderDetailModal').classList.add('hidden');
+}
+
+// ─── ACTIVITY LOG ──────────────────────────────────────
+function renderActivity() {
+  const log = getActivity();
+  const list  = document.getElementById('activityList');
+  const empty = document.getElementById('activityEmpty');
+  if (log.length === 0) { list.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  const icons = { order:'receipt_long', login:'login', status:'edit', default:'info' };
+  const colors = { order:'text-primary bg-blue-50', login:'text-green-600 bg-green-50', status:'text-orange-500 bg-orange-50', default:'text-slate-400 bg-slate-50' };
+  list.innerHTML = log.slice(0, 200).map(e => {
+    const type = e.type || 'default';
+    const ic = icons[type] || icons.default;
+    const cl = colors[type] || colors.default;
+    const desc = e.message || (e.type==='order' ? `New order from ${e.customer} — KSh ${(e.total||0).toLocaleString()}` : e.ref||type);
+    return `
+      <div class="flex items-start gap-4 px-5 py-3">
+        <div class="w-8 h-8 rounded-full ${cl} flex items-center justify-center flex-shrink-0 mt-0.5">
+          <span class="material-symbols-outlined text-sm filled">${ic}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm text-slate-700">${desc}</p>
+          <p class="text-xs text-slate-400 mt-0.5">${fmtDate(e.timestamp)}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function clearActivity() {
+  if (!confirm('Clear all activity log entries?')) return;
+  localStorage.removeItem('delwater_activity');
+  renderActivity();
+}
+
+// ─── REPORTS ───────────────────────────────────────────
+function renderReports() {
+  const orders = getOrders();
+  const revenue = orders.reduce((s,o)=>s+(o.total||0),0);
+  const delivered = orders.filter(o=>o.status==='Delivered').length;
+  const pending   = orders.filter(o=>o.status==='Pending').length;
+  const confirmed = orders.filter(o=>o.status==='Confirmed').length;
+  const avgOrder  = orders.length ? Math.round(revenue / orders.length) : 0;
+
+  document.getElementById('salesSummary').innerHTML = [
+    ['Total Orders', orders.length, 'receipt_long', 'text-primary'],
+    ['Total Revenue', 'KSh ' + revenue.toLocaleString(), 'payments', 'text-green-600'],
+    ['Average Order Value', 'KSh ' + avgOrder.toLocaleString(), 'trending_up', 'text-purple-600'],
+    ['Delivered', delivered, 'local_shipping', 'text-green-600'],
+    ['Confirmed', confirmed, 'check_circle', 'text-blue-500'],
+    ['Pending', pending, 'pending', 'text-orange-500'],
+  ].map(([label, val, icon, color]) => `
+    <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-base ${color} filled">${icon}</span>
+        <span class="text-sm text-slate-600">${label}</span>
+      </div>
+      <span class="font-bold text-sm text-slate-800">${val}</span>
+    </div>
+  `).join('');
+
+  // Product breakdown
+  const pm = {};
+  orders.forEach(o => (o.items||[]).forEach(i => {
+    if (!pm[i.name]) pm[i.name] = { qty: 0, revenue: 0 };
+    pm[i.name].qty     += i.qty||0;
+    pm[i.name].revenue += i.subtotal||0;
+  }));
+  const sorted = Object.entries(pm).sort((a,b)=>b[1].revenue-a[1].revenue);
+  const maxR = sorted[0]?.[1]?.revenue||1;
+  document.getElementById('productBreakdown').innerHTML = sorted.length === 0
+    ? `<p class="text-sm text-slate-400 text-center py-4">No data yet</p>`
+    : sorted.map(([name,d])=>`
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="font-semibold text-slate-700 truncate max-w-[200px]">${name}</span>
+            <span class="text-slate-500">${d.qty} units · <span class="text-primary font-bold">KSh ${d.revenue.toLocaleString()}</span></span>
+          </div>
+          <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-primary rounded-full" style="width:${Math.round(d.revenue/maxR*100)}%"></div>
+          </div>
+        </div>
+      `).join('');
+}
+
+// ─── EXPORTS ───────────────────────────────────────────
+function downloadCSV(rows, filename) {
+  const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  logActivity('export', `Exported "${filename}"`);
+}
+
+function exportOrdersCSV() {
+  const orders = filteredOrders.length ? filteredOrders : getOrders();
+  const headers = ['Ref','Date','Customer Name','Phone','Email','Address','City','Items','Total (KSh)','Payment','Status','Delivery Date','Notes'];
+  const rows = orders.map(o => [
+    o.ref,
+    fmtDate(o.timestamp),
+    o.customer?.name||'',
+    o.customer?.phone||'',
+    o.customer?.email||'',
+    o.customer?.address||'',
+    o.customer?.city||'',
+    (o.items||[]).map(i=>`${i.name} x${i.qty}`).join(' | '),
+    o.total||0,
+    o.payment||'',
+    o.status||'',
+    o.deliveryDate||'',
+    o.notes||''
+  ]);
+  downloadCSV([headers, ...rows], `delwater_orders_${today()}.csv`);
+}
+
+function exportProductsCSV() {
+  const pm = {};
+  getOrders().forEach(o => (o.items||[]).forEach(i => {
+    if (!pm[i.name]) pm[i.name] = { qty:0, revenue:0, orders:0 };
+    pm[i.name].qty     += i.qty||0;
+    pm[i.name].revenue += i.subtotal||0;
+    pm[i.name].orders  += 1;
+  }));
+  const rows = Object.entries(pm).sort((a,b)=>b[1].revenue-a[1].revenue)
+    .map(([name,d]) => [name, d.qty, d.orders, d.revenue]);
+  downloadCSV([['Product','Total Units Sold','Order Lines','Total Revenue (KSh)'], ...rows], `delwater_products_${today()}.csv`);
+}
+
+function exportActivityCSV() {
+  const log = getActivity();
+  const rows = log.map(e => [
+    fmtDate(e.timestamp),
+    e.type||'',
+    e.message || (e.type==='order' ? `Order ${e.ref} from ${e.customer} — KSh ${e.total||0}` : e.ref||'')
+  ]);
+  downloadCSV([['Timestamp','Type','Description'], ...rows], `delwater_activity_${today()}.csv`);
+}
+
+// ─── SETTINGS ──────────────────────────────────────────
+function saveCredentials() {
+  const u = document.getElementById('newUsername').value.trim();
+  const p = document.getElementById('newPassword').value;
+  const c = document.getElementById('confirmPassword').value;
+  const msg = document.getElementById('credMsg');
+  if (!u || !p) { showCredMsg('error','Username and password are required.'); return; }
+  if (p !== c)  { showCredMsg('error','Passwords do not match.'); return; }
+  localStorage.setItem('dw_admin_user', u);
+  localStorage.setItem('dw_admin_pass', p);
+  document.getElementById('sidebarUsername').textContent = u;
+  document.getElementById('avatarInitial').textContent = u[0].toUpperCase();
+  showCredMsg('success', 'Credentials updated! They take effect on next login.');
+  logActivity('settings', `Admin credentials changed for user "${u}"`);
+  ['newUsername','newPassword','confirmPassword'].forEach(id => document.getElementById(id).value='');
+}
+
+function showCredMsg(type, text) {
+  const el = document.getElementById('credMsg');
+  el.className = `text-sm rounded-xl px-4 py-3 ${type==='success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`;
+  el.textContent = text;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 4000);
+}
+
+function clearAllOrders() {
+  if (!confirm('Delete ALL orders? This cannot be undone.')) return;
+  localStorage.removeItem('delwater_orders');
+  logActivity('danger', 'All orders deleted by admin');
+  refreshData();
+}
+
+function clearAllData() {
+  if (!confirm('Clear ALL data including orders and activity? This cannot be undone.')) return;
+  ['delwater_orders','delwater_activity'].forEach(k => localStorage.removeItem(k));
+  alert('All data cleared.');
+  refreshData();
+}
+
+// ─── HELPERS ───────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'}) + ' ' +
+         d.toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'});
+}
+
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function statusBadgeClass(s) {
+  return { Pending:'bg-orange-100 text-orange-700', Confirmed:'bg-blue-100 text-blue-700',
+           Delivered:'bg-green-100 text-green-700', Cancelled:'bg-red-100 text-red-700' }[s] || 'bg-slate-100 text-slate-600';
+}
+
+function statusSelectClass(s) {
+  return { Pending:'text-orange-600', Confirmed:'text-blue-600',
+           Delivered:'text-green-700', Cancelled:'text-red-600' }[s] || '';
+
+// ─── CONNECTIONS SYSTEM ─────────────────────────────────
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const UNIT_PRICE = 80;
+let connPage = 1;
+const CONN_PAGE_SIZE = 25;
+
+// ── Seed data from Excel import ──
+const SEED_CLIENTS = [
+  {no:1,name:'Mary Wambui',phone:'0725765985',connFee:15000,connFeePaid:15000},
+  {no:2,name:'Margaret Waithera',phone:'0722829099',connFee:15000,connFeePaid:15000},
+  {no:3,name:'Paki Venture',phone:'0723903527',connFee:15000,connFeePaid:15000},
+  {no:4,name:'James Njeru',phone:'',connFee:15000,connFeePaid:15000},
+  {no:5,name:'John Njagi',phone:'0720158904',connFee:15000,connFeePaid:15000},
+  {no:6,name:'Miriam Ngunjiri',phone:'0722623719',connFee:15000,connFeePaid:15000},
+  {no:7,name:'Daniel Ibiri',phone:'0722388938',connFee:15000,connFeePaid:15000},
+  {no:8,name:'Rose Mary Thumbi',phone:'',connFee:15000,connFeePaid:15000},
+  {no:9,name:'Moses Wachira',phone:'0721544035',connFee:15000,connFeePaid:15000},
+  {no:10,name:'Naftaly Njuguna',phone:'0721258773',connFee:15000,connFeePaid:15000},
+  {no:11,name:'Peter Ndun\'gu',phone:'0724535379',connFee:15000,connFeePaid:15000},
+  {no:12,name:'Lilian Owiti',phone:'0721982384',connFee:15000,connFeePaid:15000},
+  {no:13,name:'Simon Karanu',phone:'0724803741',connFee:15000,connFeePaid:15000},
+  {no:14,name:'Faith Chebet',phone:'0714814883',connFee:15000,connFeePaid:14000},
+  {no:15,name:'Grace Wairimu',phone:'',connFee:15000,connFeePaid:15000},
+  {no:16,name:'Samuel Othiambo',phone:'0716982102',connFee:15000,connFeePaid:15000},
+  {no:17,name:'Samuel Othiambo B',phone:'0716982102',connFee:15000,connFeePaid:15000},
+  {no:18,name:'Doglatex Ltd',phone:'',connFee:15000,connFeePaid:15000},
+  {no:19,name:'Francis Maina',phone:'0783447265',connFee:15000,connFeePaid:15000},
+  {no:20,name:'Catherine Wangari Kimani',phone:'0720092750',connFee:15000,connFeePaid:15000},
+  {no:21,name:'Grace Muriithi',phone:'0720230802',connFee:15000,connFeePaid:15000},
+  {no:22,name:'David Ouma',phone:'0722456132',connFee:15000,connFeePaid:15000},
+  {no:23,name:'Joseph Njoroge Mwangi',phone:'0723420575',connFee:15000,connFeePaid:15000},
+  {no:24,name:'Julius Nyamu Mwangi',phone:'0724304429',connFee:15000,connFeePaid:15000},
+  {no:25,name:'Beatrice Araka',phone:'0725628224',connFee:15000,connFeePaid:15000},
+  {no:26,name:'Joseph Kamau Muhindi',phone:'0722953583',connFee:15000,connFeePaid:15000},
+  {no:27,name:'Grace Maloi',phone:'0721709505',connFee:15000,connFeePaid:15000},
+  {no:28,name:'Joel Mureithi',phone:'0721758175',connFee:15000,connFeePaid:15000},
+  {no:29,name:'Mary Wangechi Kingori',phone:'0724272458',connFee:15000,connFeePaid:15000},
+  {no:30,name:'Kimani Methi',phone:'0722233143',connFee:15000,connFeePaid:15000},
+  {no:31,name:'James Kagunya',phone:'0722844684',connFee:15000,connFeePaid:15000},
+  {no:32,name:'Ann Waweru',phone:'0723337624',connFee:15000,connFeePaid:15000},
+  {no:33,name:'Joseph Githui Kibanya',phone:'0722402455',connFee:15000,connFeePaid:15000},
+  {no:34,name:'Iram Njoroge',phone:'0722915186',connFee:15000,connFeePaid:15000},
+  {no:35,name:'Viginia Nyambura Kamau',phone:'0726977576',connFee:15000,connFeePaid:15000},
+  {no:36,name:'John Muniu',phone:'',connFee:15000,connFeePaid:15000},
+  {no:37,name:'Isaac Karanja Muroki',phone:'0712765869',connFee:15000,connFeePaid:15000},
+  {no:38,name:'Dedan Maina',phone:'0722231848',connFee:15000,connFeePaid:15000},
+  {no:39,name:'Gladys Kaniru Ndubai',phone:'0722238382',connFee:15000,connFeePaid:15000},
+  {no:40,name:'Peter Nderitu',phone:'0719622456',connFee:15000,connFeePaid:15000},
+  {no:41,name:'John Kiratu',phone:'',connFee:15000,connFeePaid:15000},
+  {no:42,name:"John King'ara",phone:'0721600478',connFee:15000,connFeePaid:15000},
+  {no:43,name:'Emily Bengi',phone:'0722807362',connFee:15000,connFeePaid:15000},
+  {no:44,name:'Agnes Kiragu',phone:'0724685133',connFee:15000,connFeePaid:10000},
+  {no:45,name:'Fancy Mumbi',phone:'0706588563',connFee:15000,connFeePaid:15000},
+  {no:46,name:'Grace Gacheke',phone:'0728628729',connFee:15000,connFeePaid:12000},
+  {no:47,name:'Felister Ngalulo',phone:'0721469587',connFee:15000,connFeePaid:15000},
+  {no:48,name:'Robert Kariuki',phone:'0721313678',connFee:15000,connFeePaid:12000},
+  {no:49,name:'Ann Gathuru',phone:'0723779088',connFee:15000,connFeePaid:15000},
+  {no:50,name:'Merkings Hardware',phone:'0721974060',connFee:15000,connFeePaid:15000},
+  {no:51,name:'Priscillah Nyambura Murithi',phone:'0700541028',connFee:15000,connFeePaid:15000},
+  {no:52,name:'Robert Maingi',phone:'0725287185',connFee:15000,connFeePaid:15000},
+  {no:53,name:'Thoma Wagura',phone:'0714060955',connFee:15000,connFeePaid:15000},
+  {no:54,name:'Lukas Mugaka',phone:'',connFee:15000,connFeePaid:15000},
+  {no:55,name:'Mary Wangaruru',phone:'0723781315',connFee:15000,connFeePaid:15000},
+  {no:56,name:'Joseph Ndegwa Muya',phone:'0722567441',connFee:15000,connFeePaid:15000},
+  {no:57,name:'John Kinyua',phone:'0722653971',connFee:15000,connFeePaid:15000},
+  {no:58,name:'Margaret Muthee',phone:'0703913090',connFee:15000,connFeePaid:15000},
+  {no:59,name:'Peter Rombe',phone:'0724574567',connFee:15000,connFeePaid:15000},
+  {no:60,name:'Njunu Enterprises',phone:'',connFee:15000,connFeePaid:15000},
+  {no:61,name:'Ann Kawira Njagi',phone:'0724490081',connFee:15000,connFeePaid:15000},
+  {no:62,name:'Joseph G Mburu',phone:'0729049824',connFee:15000,connFeePaid:15000},
+  {no:63,name:'Samwel Gitonga',phone:'',connFee:15000,connFeePaid:15000},
+  {no:64,name:'Omwenga Goefry',phone:'0724441032',connFee:15000,connFeePaid:15000},
+  {no:65,name:'Hosea Kairu',phone:'',connFee:15000,connFeePaid:15000},
+  {no:66,name:'Peter Ngiri',phone:'',connFee:15000,connFeePaid:15000},
+  {no:67,name:'John Kiragu',phone:'',connFee:15000,connFeePaid:15000},
+  {no:68,name:'John Kabui (Baba Njoki)',phone:'0722476327',connFee:15000,connFeePaid:15000},
+  {no:69,name:'Peter Githu',phone:'0723348069',connFee:15000,connFeePaid:15000},
+  {no:70,name:'Goefrey Muchemi Maina',phone:'0725798463',connFee:15000,connFeePaid:15000},
+  {no:71,name:'Peter Muiruri',phone:'0707404941',connFee:15000,connFeePaid:15000},
+  {no:72,name:'Daniel Maina',phone:'',connFee:15000,connFeePaid:15000},
+  {no:74,name:'John Mbugua Karuku',phone:'',connFee:15000,connFeePaid:15000},
+  {no:75,name:'Andrew Onyancha',phone:'0726434243',connFee:15000,connFeePaid:15000},
+  {no:76,name:'Jedidah Mwendwa Muthuri',phone:'',connFee:15000,connFeePaid:15000},
+  {no:77,name:'Ziporah Kirima',phone:'0721596441',connFee:15000,connFeePaid:15000},
+  {no:78,name:'Florence Wanjiku Wahome',phone:'',connFee:15000,connFeePaid:15000},
+  {no:79,name:'Paul Maina (Wanyaguthii)',phone:'0724709639',connFee:15000,connFeePaid:15000},
+  {no:80,name:'Lucy Mwangi (Wa Njambi)',phone:'0723481253',connFee:15000,connFeePaid:15000},
+  {no:81,name:'Simon Ndubai',phone:'0722460932',connFee:15000,connFeePaid:15000},
+  {no:82,name:'Eshter Nganga',phone:'',connFee:15000,connFeePaid:15000},
+  {no:83,name:'Jane Ndeti',phone:'',connFee:15000,connFeePaid:15000},
+  {no:84,name:'Henry Ngugi',phone:'0721800264',connFee:15000,connFeePaid:15000},
+  {no:85,name:'Tyson Ngunu',phone:'0721388885',connFee:15000,connFeePaid:15000},
+  {no:86,name:'Vincent Kamau',phone:'0713893611',connFee:15000,connFeePaid:15000},
+  {no:87,name:'Wilson Obonyo',phone:'0722558583',connFee:15000,connFeePaid:15000},
+  {no:88,name:'Antony Kamau',phone:'0727886826',connFee:15000,connFeePaid:10000},
+  {no:89,name:'Dominic Kumina',phone:'0722798052',connFee:15000,connFeePaid:15000},
+  {no:90,name:'Benard Gikonyo',phone:'',connFee:15000,connFeePaid:15000},
+  {no:91,name:'Joseph Wainaina',phone:'0727292188',connFee:15000,connFeePaid:15000},
+  {no:92,name:'Mathrice Ithuru Ndubai',phone:'0720694220',connFee:15000,connFeePaid:10000},
+  {no:93,name:'Douglas Kabiru',phone:'0722555008',connFee:15000,connFeePaid:15000},
+  {no:94,name:'Mountain Movers Church',phone:'',connFee:15000,connFeePaid:15000},
+  {no:95,name:'Peter Kariuki',phone:'0737603487',connFee:15000,connFeePaid:15000},
+  {no:96,name:'Stephen Nduati (Sunrise)',phone:'0724389165',connFee:15000,connFeePaid:15000},
+  {no:97,name:'Edward Miano',phone:'0733979096',connFee:15000,connFeePaid:15000},
+  {no:98,name:'David Otieno Omolo',phone:'0739601735',connFee:15000,connFeePaid:15000},
+  {no:99,name:'Gidraf Kirienye',phone:'',connFee:15000,connFeePaid:15000},
+  {no:100,name:'Moses Kimani Ndungu',phone:'',connFee:15000,connFeePaid:15000},
+  {no:101,name:'Emmanuel Leads Junior School',phone:'0722728941',connFee:15000,connFeePaid:15000},
+  {no:102,name:'Carol Wanjiru',phone:'0723475185',connFee:15000,connFeePaid:15000},
+  {no:103,name:'Lily Margaret (Mama Leah)',phone:'0722900716',connFee:15000,connFeePaid:0},
+  {no:104,name:'Samson Mbura Karanja',phone:'0725264953',connFee:15000,connFeePaid:0},
+  {no:105,name:'Ann Wanjiru (Wa Gitau) A',phone:'0716152500',connFee:15000,connFeePaid:15000},
+  {no:106,name:'Ann Wanjiru (Wa Gitau) B',phone:'0716152500',connFee:15000,connFeePaid:15000},
+  {no:107,name:'Mugendi',phone:'',connFee:15000,connFeePaid:13000},
+  {no:108,name:'Moses Murungi / Florence Njeri',phone:'',connFee:15000,connFeePaid:15000},
+  {no:109,name:'Joel Wangai Muriithi',phone:'0721758175',connFee:15000,connFeePaid:15000},
+  {no:110,name:"James Thion'go",phone:'',connFee:15000,connFeePaid:15000},
+  {no:111,name:'Alice Njambi',phone:'',connFee:15000,connFeePaid:15000},
+  {no:112,name:'Benedict Muriithi Karuya',phone:'0722903519',connFee:15000,connFeePaid:15000},
+  {no:113,name:'Irene Orina',phone:'0714011241',connFee:15000,connFeePaid:15000},
+  {no:114,name:'Joshua Etali',phone:'0722498597',connFee:15000,connFeePaid:15000},
+  {no:115,name:'Edwin Maina Mutonya',phone:'0726959993',connFee:15000,connFeePaid:15000},
+  {no:116,name:"Benard Ndung'u",phone:'0728663811',connFee:15000,connFeePaid:15000},
+  {no:117,name:'Julius Wanjohi',phone:'0727821215',connFee:15000,connFeePaid:15000},
+  {no:118,name:'Andrew Mathara',phone:'0723178398',connFee:15000,connFeePaid:15000},
+  {no:119,name:'Caroline Wanja Njoroge',phone:'0721206475',connFee:15000,connFeePaid:15000},
+  {no:120,name:'Samuel Ngaruiya',phone:'0727589737',connFee:15000,connFeePaid:15000},
+  {no:121,name:'David Kamau',phone:'0797734922',connFee:15000,connFeePaid:15000},
+  {no:122,name:'John Kogi',phone:'0720353468',connFee:15000,connFeePaid:15000},
+  {no:123,name:'Paul Osero',phone:'0726038750',connFee:15000,connFeePaid:15000},
+  {no:124,name:'Moses Mburu',phone:'0722850417',connFee:25000,connFeePaid:25000},
+  {no:125,name:'Elizabeth Wahito',phone:'0721474054',connFee:15000,connFeePaid:12000},
+  {no:126,name:'Joseph Njoroge (Watom)',phone:'',connFee:15000,connFeePaid:15000},
+  {no:127,name:'Joseph Gitonga B',phone:'',connFee:15000,connFeePaid:15000},
+  {no:128,name:'Jesse Wahome Waithaka',phone:'',connFee:15000,connFeePaid:15000},
+  {no:129,name:'Rodgers House (H.R)',phone:'0795106340',connFee:15000,connFeePaid:15000},
+  {no:130,name:'Monicah Mburu',phone:'0723420366',connFee:15000,connFeePaid:15000},
+  {no:131,name:"John Ndung'u Kung'u A",phone:'0720964724',connFee:15000,connFeePaid:15000},
+  {no:132,name:"John Ndung'u Kung'u B",phone:'0720964724',connFee:15000,connFeePaid:15000},
+  {no:133,name:'Joseph Gitonga A',phone:'',connFee:15000,connFeePaid:15000},
+  {no:134,name:'Patrick Mufioya',phone:'',connFee:15000,connFeePaid:15000},
+  {no:135,name:'Stephen Mwangi',phone:'',connFee:15000,connFeePaid:15000},
+  {no:136,name:'Geoffrey Maina',phone:'',connFee:15000,connFeePaid:15000},
+  {no:137,name:'Douglatex B',phone:'',connFee:15000,connFeePaid:15000},
+  {no:138,name:'Saral Mwema',phone:'',connFee:15000,connFeePaid:15000},
+  {no:139,name:'Moses Mburu (139)',phone:'',connFee:15000,connFeePaid:15000},
+  {no:140,name:'Njunu Enterprises (140)',phone:'',connFee:15000,connFeePaid:15000},
+  {no:141,name:'Jeniffer Gitau',phone:'',connFee:15000,connFeePaid:15000},
+];
+
+// January 2025 readings pre-loaded from Excel
+const SEED_READINGS = {
+  1:{month:'2025-01',prev:1568,curr:1633,paid:5200},
+  2:{month:'2025-01',prev:3884,curr:4126,paid:19360},
+  3:{month:'2025-02',prev:2153,curr:2213,paid:4700},
+  5:{month:'2025-01',prev:23,curr:24,paid:0},
+  6:{month:'2025-01',prev:382,curr:414,paid:3100},
+  7:{month:'2025-01',prev:599,curr:654,paid:4400},
+  8:{month:'2025-01',prev:136,curr:143,paid:0},
+  9:{month:'2025-01',prev:174,curr:188,paid:1120},
+  10:{month:'2025-01',prev:225,curr:232,paid:560},
+  11:{month:'2025-01',prev:1617,curr:1688,paid:0},
+  12:{month:'2025-01',prev:2946,curr:3009,paid:5040},
+  13:{month:'2025-01',prev:3727,curr:3960,paid:0},
+  14:{month:'2025-01',prev:145,curr:152,paid:0},
+  15:{month:'2025-01',prev:242,curr:248,paid:0},
+  16:{month:'2025-01',prev:628,curr:664,paid:0},
+  17:{month:'2025-01',prev:433,curr:452,paid:0},
+  18:{month:'2025-01',prev:3162,curr:3341,paid:14320},
+  19:{month:'2025-01',prev:260,curr:272,paid:0},
+  20:{month:'2025-01',prev:377,curr:399,paid:0},
+  21:{month:'2025-01',prev:508,curr:638,paid:2200},
+  22:{month:'2025-01',prev:27,curr:28,paid:0},
+  23:{month:'2025-01',prev:621,curr:668,paid:0},
+  24:{month:'2025-01',prev:142,curr:146,paid:320},
+  25:{month:'2025-01',prev:212,curr:222,paid:800},
+  26:{month:'2025-01',prev:665,curr:693,paid:0},
+  28:{month:'2025-01',prev:488,curr:515,paid:2160},
+  29:{month:'2025-01',prev:255,curr:275,paid:1500},
+  30:{month:'2025-01',prev:665,curr:704,paid:0},
+  31:{month:'2025-01',prev:713,curr:755,paid:0},
+  32:{month:'2025-01',prev:1772,curr:1914,paid:0},
+  33:{month:'2025-01',prev:5,curr:6,paid:0},
+  34:{month:'2025-01',prev:212,curr:232,paid:1200},
+  35:{month:'2025-01',prev:160,curr:172,paid:960},
+  36:{month:'2025-01',prev:164,curr:171,paid:560},
+  37:{month:'2025-01',prev:234,curr:245,paid:0},
+  38:{month:'2025-01',prev:211,curr:225,paid:1120},
+  39:{month:'2025-01',prev:163,curr:177,paid:1500},
+  40:{month:'2025-01',prev:425,curr:451,paid:2080},
+  41:{month:'2025-01',prev:869,curr:897,paid:2240},
+  42:{month:'2025-01',prev:3315,curr:3440,paid:0},
+  43:{month:'2025-01',prev:158,curr:167,paid:0},
+  44:{month:'2025-01',prev:211,curr:223,paid:0},
+  45:{month:'2025-01',prev:477,curr:496,paid:1500},
+  46:{month:'2025-01',prev:258,curr:270,paid:0},
+  47:{month:'2025-01',prev:656,curr:679,paid:1840},
+  48:{month:'2025-01',prev:678,curr:717,paid:0},
+  49:{month:'2025-01',prev:97,curr:105,paid:640},
+  50:{month:'2025-01',prev:147,curr:158,paid:880},
+  51:{month:'2025-01',prev:260,curr:272,paid:0},
+  52:{month:'2025-01',prev:349,curr:350,paid:0},
+  53:{month:'2025-01',prev:276,curr:286,paid:0},
+  54:{month:'2025-01',prev:348,curr:376,paid:2720},
+  55:{month:'2025-01',prev:443,curr:479,paid:2880},
+  57:{month:'2025-01',prev:804,curr:829,paid:0},
+  58:{month:'2025-01',prev:234,curr:285,paid:3600},
+  59:{month:'2025-01',prev:265,curr:282,paid:1360},
+  60:{month:'2025-01',prev:260,curr:272,paid:0},
+  61:{month:'2025-01',prev:91,curr:92,paid:0},
+  62:{month:'2025-01',prev:139,curr:148,paid:1100},
+  65:{month:'2025-01',prev:706,curr:726,paid:0},
+  66:{month:'2025-01',prev:492,curr:523,paid:2480},
+  67:{month:'2025-01',prev:260,curr:272,paid:960},
+  68:{month:'2025-01',prev:137,curr:154,paid:1360},
+  72:{month:'2025-01',prev:433,curr:473,paid:3200},
+  74:{month:'2025-01',prev:808,curr:931,paid:0},
+  75:{month:'2025-01',prev:229,curr:253,paid:0},
+  76:{month:'2025-01',prev:78,curr:82,paid:0},
+  77:{month:'2025-01',prev:55,curr:60,paid:0},
+  78:{month:'2025-01',prev:123,curr:132,paid:720},
+  79:{month:'2025-01',prev:88,curr:94,paid:400},
+  80:{month:'2025-01',prev:77,curr:80,paid:240},
+  81:{month:'2025-01',prev:530,curr:572,paid:3360},
+  82:{month:'2025-01',prev:266,curr:282,paid:1280},
+  83:{month:'2025-01',prev:522,curr:631,paid:8720},
+  84:{month:'2025-01',prev:227,curr:272,paid:0},
+  85:{month:'2025-01',prev:193,curr:208,paid:1200},
+  86:{month:'2025-01',prev:2052,curr:2218,paid:0},
+  87:{month:'2025-01',prev:155,curr:170,paid:0},
+  88:{month:'2025-01',prev:186,curr:205,paid:0},
+  91:{month:'2025-01',prev:57,curr:98,paid:3500},
+  93:{month:'2025-01',prev:1147,curr:1208,paid:4880},
+  94:{month:'2025-01',prev:227,curr:272,paid:0},
+  95:{month:'2025-01',prev:599,curr:637,paid:0},
+  96:{month:'2025-01',prev:217,curr:246,paid:0},
+  97:{month:'2025-01',prev:272,curr:319,paid:3760},
+  98:{month:'2025-01',prev:81,curr:87,paid:480},
+  99:{month:'2025-01',prev:602,curr:873,paid:21680},
+  100:{month:'2025-01',prev:178,curr:193,paid:1430},
+  101:{month:'2025-01',prev:102,curr:117,paid:0},
+  102:{month:'2025-01',prev:810,curr:834,paid:1920},
+  103:{month:'2025-01',prev:416,curr:420,paid:320},
+  104:{month:'2025-01',prev:1086,curr:1207,paid:9680},
+  105:{month:'2025-02',prev:875,curr:955,paid:6400},
+  106:{month:'2025-01',prev:487,curr:533,paid:3680},
+  107:{month:'2025-01',prev:76,curr:82,paid:0},
+  108:{month:'2025-01',prev:31,curr:35,paid:320},
+  109:{month:'2025-01',prev:69,curr:81,paid:960},
+  110:{month:'2025-01',prev:227,curr:272,paid:2900},
+  111:{month:'2025-01',prev:49,curr:58,paid:0},
+  112:{month:'2025-01',prev:33,curr:37,paid:0},
+  113:{month:'2025-01',prev:96,curr:119,paid:0},
+  115:{month:'2025-01',prev:2385,curr:2862,paid:0},
+  116:{month:'2025-01',prev:42,curr:49,paid:560},
+  117:{month:'2025-01',prev:93,curr:103,paid:0},
+  118:{month:'2025-01',prev:123,curr:133,paid:0},
+  119:{month:'2025-01',prev:1909,curr:1938,paid:2320},
+  120:{month:'2025-01',prev:228,curr:235,paid:0},
+  121:{month:'2025-01',prev:47,curr:58,paid:880},
+  122:{month:'2025-01',prev:146,curr:167,paid:0},
+  123:{month:'2025-01',prev:120,curr:162,paid:0},
+  126:{month:'2025-01',prev:141,curr:185,paid:3520},
+  127:{month:'2025-01',prev:67,curr:75,paid:0},
+  128:{month:'2025-01',prev:487,curr:633,paid:11680},
+  129:{month:'2025-01',prev:132,curr:174,paid:3360},
+  130:{month:'2025-01',prev:25,curr:33,paid:0},
+  131:{month:'2025-01',prev:1530,curr:1621,paid:7280},
+  132:{month:'2025-01',prev:8,curr:21,paid:1040},
+  134:{month:'2025-01',prev:192,curr:269,paid:0},
+  135:{month:'2025-01',prev:385,curr:419,paid:2720},
+  137:{month:'2025-01',prev:1059,curr:1163,paid:8320},
+  141:{month:'2025-01',prev:0,curr:13,paid:1000},
+};
+
+function getConnections() {
+  const stored = localStorage.getItem('delwater_connections');
+  if (stored) return JSON.parse(stored);
+  // First run — seed from Excel
+  const clients = SEED_CLIENTS.map(c => {
+    const r = SEED_READINGS[c.no];
+    const readings = [];
+    if (r) {
+      const units = r.curr - r.prev;
+      const amount = units * UNIT_PRICE;
+      readings.push({ month: r.month, prev: r.prev, curr: r.curr, units, amount, paid: r.paid, balance: amount - r.paid });
+    }
+    return { ...c, readings };
+  });
+  localStorage.setItem('delwater_connections', JSON.stringify(clients));
+  return clients;
+}
+
+function saveConnections(clients) {
+  localStorage.setItem('delwater_connections', JSON.stringify(clients));
+}
+
+function getAvailableMonths() {
+  const clients = getConnections();
+  const months = new Set();
+  months.add(new Date().toISOString().slice(0,7)); // always include current month
+  clients.forEach(c => (c.readings||[]).forEach(r => months.add(r.month)));
+  return [...months].sort().reverse();
+}
+
+function populateMonthFilter() {
+  const sel = document.getElementById('conn-month-filter');
+  if (!sel) return;
+  const months = getAvailableMonths();
+  sel.innerHTML = months.map(m => {
+    const [y,mo] = m.split('-');
+    return `<option value="${m}">${MONTHS[parseInt(mo)-1]} ${y}</option>`;
+  }).join('');
+}
+
+function updateConnSummary() {
+  const sel = document.getElementById('conn-month-filter');
+  if (!sel) return;
+  const month = sel.value;
+  const clients = getConnections();
+  let billed = 0, paid = 0, outstanding = 0, withBalance = 0;
+  clients.forEach(c => {
+    const r = (c.readings||[]).find(x => x.month === month);
+    if (r) {
+      billed += r.amount||0;
+      paid   += r.paid||0;
+      const bal = (r.amount||0) - (r.paid||0);
+      if (bal > 0) { outstanding += bal; withBalance++; }
+    }
+  });
+  document.getElementById('conn-total-clients').textContent = clients.length;
+  document.getElementById('conn-month-billed').textContent = 'KSh ' + billed.toLocaleString();
+  document.getElementById('conn-month-paid').textContent = 'KSh ' + paid.toLocaleString();
+  document.getElementById('conn-collection-rate').textContent = billed > 0 ? Math.round(paid/billed*100)+'% collection rate' : '0% collection rate';
+  document.getElementById('conn-outstanding').textContent = 'KSh ' + outstanding.toLocaleString();
+  document.getElementById('conn-outstanding-count').textContent = withBalance + ' clients with balance';
+  const [y,mo] = month.split('-');
+  document.getElementById('conn-month-label').textContent = MONTHS[parseInt(mo)-1] + ' ' + y;
+}
+
+function renderConnections() {
+  const sel = document.getElementById('conn-month-filter');
+  if (!sel) return;
+  const month = sel.value;
+  const search = (document.getElementById('conn-search')?.value||'').toLowerCase();
+  const bFilter = document.getElementById('conn-balance-filter')?.value || 'all';
+  let clients = getConnections();
+  if (search) clients = clients.filter(c =>
+    c.name.toLowerCase().includes(search) ||
+    String(c.no).includes(search) ||
+    (c.phone||'').includes(search)
+  );
+  if (bFilter !== 'all') {
+    clients = clients.filter(c => {
+      const r = (c.readings||[]).find(x => x.month === month);
+      if (bFilter === 'unread') return !r;
+      if (!r) return false;
+      const bal = (r.amount||0) - (r.paid||0);
+      if (bFilter === 'balance') return bal > 0;
+      if (bFilter === 'clear')   return bal <= 0;
+      return true;
+    });
+  }
+  const total = clients.length;
+  const pages = Math.max(1, Math.ceil(total / CONN_PAGE_SIZE));
+  if (connPage > pages) connPage = 1;
+  const paged = clients.slice((connPage-1)*CONN_PAGE_SIZE, connPage*CONN_PAGE_SIZE);
+  const body = document.getElementById('conn-table-body');
+  if (!paged.length) {
+    body.innerHTML = `<tr><td colspan="10" class="text-center py-12 text-slate-400">No clients found</td></tr>`;
+  } else {
+    body.innerHTML = paged.map(c => {
+      const r = (c.readings||[]).find(x => x.month === month);
+      const bal = r ? (r.amount||0) - (r.paid||0) : null;
+      const balClass = bal === null ? '' : bal > 0 ? 'text-red-600 font-bold' : 'text-green-600';
+      return `<tr class="table-row border-b border-slate-50">
+        <td class="px-5 py-3 text-slate-500 font-mono text-xs">${c.no}</td>
+        <td class="px-5 py-3 font-semibold text-slate-800">${c.name}</td>
+        <td class="px-5 py-3 text-slate-500 text-xs">${c.phone||'—'}</td>
+        <td class="px-5 py-3 text-slate-600">${r ? r.prev : '—'}</td>
+        <td class="px-5 py-3 text-slate-600">${r ? r.curr : '—'}</td>
+        <td class="px-5 py-3 text-right text-slate-700">${r ? r.units : '—'}</td>
+        <td class="px-5 py-3 text-right text-slate-700">${r ? 'KSh '+r.amount.toLocaleString() : '—'}</td>
+        <td class="px-5 py-3 text-right text-green-700">${r ? 'KSh '+(r.paid||0).toLocaleString() : '—'}</td>
+        <td class="px-5 py-3 text-right ${balClass}">${bal !== null ? 'KSh '+bal.toLocaleString() : '—'}</td>
+        <td class="px-5 py-3 text-center">
+          <div class="flex items-center justify-center gap-1">
+            <button onclick="openReadingModal(${c.no})" title="Add reading" class="p-1.5 rounded-lg hover:bg-blue-50 text-slate-400 hover:text-primary transition">
+              <span class="material-symbols-outlined text-sm">speed</span>
+            </button>
+            <button onclick="openPaymentModal(${c.no})" title="Record payment" class="p-1.5 rounded-lg hover:bg-green-50 text-slate-400 hover:text-green-600 transition">
+              <span class="material-symbols-outlined text-sm">payments</span>
+            </button>
+            <button onclick="openHistoryModal(${c.no})" title="History" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition">
+              <span class="material-symbols-outlined text-sm">history</span>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('conn-pagination').innerHTML =
+    `Showing ${(connPage-1)*CONN_PAGE_SIZE+1}–${Math.min(connPage*CONN_PAGE_SIZE,total)} of ${total} &nbsp;|&nbsp;
+     <button onclick="if(connPage>1){connPage--;renderConnections()}" class="px-2 py-0.5 hover:text-primary disabled:opacity-40" ${connPage<=1?'disabled':''}>‹ Prev</button>
+     <span class="px-2">${connPage} / ${pages}</span>
+     <button onclick="if(connPage<${pages}){connPage++;renderConnections()}" class="px-2 py-0.5 hover:text-primary disabled:opacity-40" ${connPage>=pages?'disabled':''}>Next ›</button>`;
+}
+
+function openReadingModal(memberNo) {
+  const clients = getConnections();
+  const c = clients.find(x => x.no === memberNo);
+  if (!c) return;
+  const lastReading = c.readings?.slice().sort((a,b)=>b.month.localeCompare(a.month))[0];
+  document.getElementById('rm-title').textContent = `Add Reading — #${c.no} ${c.name}`;
+  document.getElementById('rm-member-no').value = memberNo;
+  document.getElementById('rm-prev').value = lastReading?.curr ?? '';
+  document.getElementById('rm-curr').value = '';
+  document.getElementById('rm-paid').value = '';
+  const now = new Date();
+  document.getElementById('rm-month').value = now.toISOString().slice(0,7);
+  document.getElementById('rm-calc').textContent = '';
+  document.getElementById('readingModal').classList.remove('hidden');
+  document.getElementById('readingModal').classList.add('flex');
+}
+
+function calcReadingPreview() {
+  const prev = parseFloat(document.getElementById('rm-prev').value)||0;
+  const curr = parseFloat(document.getElementById('rm-curr').value)||0;
+  const units = curr - prev;
+  const amount = units * UNIT_PRICE;
+  document.getElementById('rm-calc').textContent = units >= 0
+    ? `${units} units × KSh ${UNIT_PRICE} = KSh ${amount.toLocaleString()}`
+    : 'Current must be greater than previous';
+}
+
+function saveReading() {
+  const memberNo = parseInt(document.getElementById('rm-member-no').value);
+  const month = document.getElementById('rm-month').value;
+  const prev  = parseFloat(document.getElementById('rm-prev').value)||0;
+  const curr  = parseFloat(document.getElementById('rm-curr').value)||0;
+  const paid  = parseFloat(document.getElementById('rm-paid').value)||0;
+  if (!month) { alert('Select a month'); return; }
+  if (curr < prev) { alert('Current reading must be ≥ previous reading'); return; }
+  const units = curr - prev;
+  const amount = units * UNIT_PRICE;
+  const clients = getConnections();
+  const c = clients.find(x => x.no === memberNo);
+  if (!c) return;
+  if (!c.readings) c.readings = [];
+  const existing = c.readings.findIndex(r => r.month === month);
+  const entry = { month, prev, curr, units, amount, paid, balance: amount - paid };
+  if (existing >= 0) c.readings[existing] = entry;
+  else c.readings.push(entry);
+  saveConnections(clients);
+  closeReadingModal();
+  populateMonthFilter();
+  updateConnSummary();
+  renderConnections();
+}
+
+function closeReadingModal() {
+  document.getElementById('readingModal').classList.add('hidden');
+  document.getElementById('readingModal').classList.remove('flex');
+}
+
+function openPaymentModal(memberNo) {
+  const clients = getConnections();
+  const c = clients.find(x => x.no === memberNo);
+  if (!c) return;
+  const month = document.getElementById('conn-month-filter').value;
+  const r = (c.readings||[]).find(x => x.month === month);
+  document.getElementById('pm-title').textContent = `Record Payment — #${c.no} ${c.name}`;
+  document.getElementById('pm-member-no').value = memberNo;
+  document.getElementById('pm-month').value = month;
+  document.getElementById('pm-amount').value = r ? Math.max(0,(r.amount||0)-(r.paid||0)) : '';
+  document.getElementById('pm-balance-info').textContent = r
+    ? `Amount: KSh ${(r.amount||0).toLocaleString()} | Already paid: KSh ${(r.paid||0).toLocaleString()}`
+    : 'No reading for this month yet';
+  document.getElementById('paymentModal').classList.remove('hidden');
+  document.getElementById('paymentModal').classList.add('flex');
+}
+
+function savePayment() {
+  const memberNo = parseInt(document.getElementById('pm-member-no').value);
+  const month    = document.getElementById('pm-month').value;
+  const amount   = parseFloat(document.getElementById('pm-amount').value)||0;
+  const clients  = getConnections();
+  const c = clients.find(x => x.no === memberNo);
+  if (!c) return;
+  if (!c.readings) c.readings = [];
+  const r = c.readings.find(x => x.month === month);
+  if (!r) { alert('Please add a meter reading for this month first.'); return; }
+  r.paid = (r.paid||0) + amount;
+  r.balance = r.amount - r.paid;
+  saveConnections(clients);
+  closePaymentModal();
+  updateConnSummary();
+  renderConnections();
+  logActivity('payment', `Payment KSh ${amount.toLocaleString()} for connection #${memberNo} ${c.name}`);
+}
+
+function closePaymentModal() {
+  document.getElementById('paymentModal').classList.add('hidden');
+  document.getElementById('paymentModal').classList.remove('flex');
+}
+
+function openHistoryModal(memberNo) {
+  const clients = getConnections();
+  const c = clients.find(x => x.no === memberNo);
+  if (!c) return;
+  document.getElementById('hm-title').textContent = `History — #${c.no} ${c.name}`;
+  const readings = (c.readings||[]).slice().sort((a,b)=>b.month.localeCompare(a.month));
+  document.getElementById('hm-body').innerHTML = readings.length === 0
+    ? '<p class="text-slate-400 text-sm text-center py-6">No readings recorded yet</p>'
+    : readings.map(r => {
+        const [y,mo] = r.month.split('-');
+        const bal = (r.amount||0) - (r.paid||0);
+        return `<div class="flex justify-between items-center py-3 border-b border-slate-50 text-sm last:border-0">
+          <div>
+            <p class="font-semibold">${MONTHS[parseInt(mo)-1]} ${y}</p>
+            <p class="text-xs text-slate-400">${r.prev} → ${r.curr} = ${r.units} units</p>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-slate-700">KSh ${(r.amount||0).toLocaleString()}</p>
+            <p class="text-xs ${bal > 0 ? 'text-red-500' : 'text-green-600'}">
+              Paid: ${(r.paid||0).toLocaleString()} | Bal: ${bal.toLocaleString()}</p>
+          </div>
+        </div>`;
+      }).join('');
+  document.getElementById('historyModal').classList.remove('hidden');
+  document.getElementById('historyModal').classList.add('flex');
+}
+
+function closeHistoryModal() {
+  document.getElementById('historyModal').classList.add('hidden');
+  document.getElementById('historyModal').classList.remove('flex');
+}
+
+function openAddClientModal() {
+  document.getElementById('ac-no').value = '';
+  document.getElementById('ac-name').value = '';
+  document.getElementById('ac-phone').value = '';
+  document.getElementById('ac-fee-paid').value = '';
+  document.getElementById('addClientModal').classList.remove('hidden');
+  document.getElementById('addClientModal').classList.add('flex');
+}
+
+function saveNewClient() {
+  const no   = parseInt(document.getElementById('ac-no').value);
+  const name = document.getElementById('ac-name').value.trim();
+  const phone= document.getElementById('ac-phone').value.trim();
+  const feePaid = parseFloat(document.getElementById('ac-fee-paid').value)||0;
+  if (!no || !name) { alert('Member number and name are required'); return; }
+  const clients = getConnections();
+  if (clients.find(c => c.no === no)) { alert(`Member #${no} already exists`); return; }
+  clients.push({ no, name, phone, connFee: 15000, connFeePaid: feePaid, readings: [] });
+  clients.sort((a,b) => a.no - b.no);
+  saveConnections(clients);
+  document.getElementById('addClientModal').classList.add('hidden');
+  document.getElementById('addClientModal').classList.remove('flex');
+  document.getElementById('conn-total-clients').textContent = clients.length;
+  renderConnections();
+  logActivity('settings', `New connection client added: #${no} ${name}`);
+}
+
+function closeAddClientModal() {
+  document.getElementById('addClientModal').classList.add('hidden');
+  document.getElementById('addClientModal').classList.remove('flex');
+}
+
+function exportConnectionsCSV() {
+  const month = document.getElementById('conn-month-filter').value;
+  const [y,mo] = month.split('-');
+  const monthLabel = `${MONTHS[parseInt(mo)-1]} ${y}`;
+  const clients = getConnections();
+  const headers = ['Member No','Name','Phone','Conn Fee','Conn Fee Paid','Month','Prev Reading','Curr Reading','Units','Amount','Paid','Balance'];
+  const rows = clients.map(c => {
+    const r = (c.readings||[]).find(x => x.month === month);
+    return [c.no, c.name, c.phone||'', c.connFee||15000, c.connFeePaid||0,
+      monthLabel, r?.prev??'', r?.curr??'', r?.units??'', r?.amount??'', r?.paid??'', r ? (r.amount||0)-(r.paid||0) : ''];
+  });
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
+  a.download = `delwater_connections_${month}.csv`;
+  a.click();
+}
+
+// Hook into showTab to init connections tab
+const _origShowTab = showTab;
+function showTab(tab) {
+  _origShowTab(tab);
+  if (tab === 'connections') {
+    populateMonthFilter();
+    updateConnSummary();
+    renderConnections();
+  }
+}
+// Listens for new orders saved by DelwaterFull.html in the same browser/origin
+window.addEventListener('storage', function(e) {
+  if (e.key === 'delwater_orders' || e.key === 'delwater_activity') {
+    refreshData();
+    // Show a subtle toast notification for new orders
+    if (e.key === 'delwater_orders') {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-6 right-6 z-50 bg-green-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 fade-in';
+      toast.innerHTML = '<span class="material-symbols-outlined text-lg filled">notifications</span><span class="text-sm font-bold">New order received!</span>';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+  }
+});
+</script>
+<!-- ── ADD READING MODAL ── -->
+<div id="readingModal" class="fixed inset-0 bg-black/50 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl">
+    <h3 class="font-headline font-bold text-lg mb-5" id="rm-title">Add Meter Reading</h3>
+    <input type="hidden" id="rm-member-no">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Month</label>
+        <input id="rm-month" type="month" class="w-full">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Previous Reading</label>
+          <input id="rm-prev" type="number" oninput="calcReadingPreview()" class="w-full" placeholder="0">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Current Reading</label>
+          <input id="rm-curr" type="number" oninput="calcReadingPreview()" class="w-full" placeholder="0">
+        </div>
+      </div>
+      <p id="rm-calc" class="text-sm text-primary font-semibold min-h-[20px]"></p>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Amount Paid (KSh)</label>
+        <input id="rm-paid" type="number" class="w-full" placeholder="0">
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="saveReading()" class="flex-1 water-gradient text-white py-2.5 rounded-xl font-bold text-sm">Save Reading</button>
+      <button onclick="closeReadingModal()" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RECORD PAYMENT MODAL ── -->
+<div id="paymentModal" class="fixed inset-0 bg-black/50 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl">
+    <h3 class="font-headline font-bold text-lg mb-1" id="pm-title">Record Payment</h3>
+    <p id="pm-balance-info" class="text-xs text-slate-400 mb-5"></p>
+    <input type="hidden" id="pm-member-no">
+    <input type="hidden" id="pm-month">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Amount Received (KSh)</label>
+        <input id="pm-amount" type="number" class="w-full" placeholder="0">
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="savePayment()" class="flex-1 bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-green-700">Record Payment</button>
+      <button onclick="closePaymentModal()" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── HISTORY MODAL ── -->
+<div id="historyModal" class="fixed inset-0 bg-black/50 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-headline font-bold text-lg" id="hm-title">Billing History</h3>
+      <button onclick="closeHistoryModal()" class="p-2 rounded-full hover:bg-slate-100"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div id="hm-body" class="overflow-y-auto flex-1"></div>
+  </div>
+</div>
+
+<!-- ── ADD CLIENT MODAL ── -->
+<div id="addClientModal" class="fixed inset-0 bg-black/50 z-[80] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl">
+    <h3 class="font-headline font-bold text-lg mb-5">Add New Client</h3>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Member Number *</label>
+        <input id="ac-no" type="number" class="w-full" placeholder="e.g. 142">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Full Name *</label>
+        <input id="ac-name" type="text" class="w-full" placeholder="e.g. Jane Wanjiku">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Phone Number</label>
+        <input id="ac-phone" type="tel" class="w-full" placeholder="07XX XXX XXX">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Connection Fee Paid (KSh)</label>
+        <input id="ac-fee-paid" type="number" class="w-full" placeholder="15000">
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <button onclick="saveNewClient()" class="flex-1 water-gradient text-white py-2.5 rounded-xl font-bold text-sm">Add Client</button>
+      <button onclick="closeAddClientModal()" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50">Cancel</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
