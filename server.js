@@ -229,7 +229,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(CONFIG.PORT, () => {
-  const ready = CONFIG.MPESA.NGROK_URL !== 'YOUR_NGROK_URL';
+  const ready = CONFIG.MPESA.NGROK_URL !== 'https://delwater-system-production.up.railway.app/';
   console.log('\n💧 ─────────────────────────────────────────────');
   console.log('   DELWATER Server running!');
   console.log('─────────────────────────────────────────────────');
