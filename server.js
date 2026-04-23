@@ -9,7 +9,24 @@
  *   2. Set LNM_PASSKEY from developer.safaricom.co.ke
  *      → Your App → LNM Online Passkey
  */
+const mongoose = require("mongoose");
 
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.log("❌ MongoDB error:", err));
+
+const transactionSchema = new mongoose.Schema({
+  CheckoutRequestID: String,
+  phone: String,
+  amount: Number,
+  status: String,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const Transaction = mongoose.model("Transaction", transactionSchema);
 const http  = require('http');
 const https = require('https');
 const fs    = require('fs');
@@ -161,11 +178,17 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'Missing phone, amount or orderRef' }));
       }
-      if (CONFIG.MPESA.NGROK_URL === 'YOUR_NGROK_URL') {
+      if (CONFIG.MPESA.NGROK_URL === 'https://delwater-system-production.up.railway.app/mpesa/callback') {
         res.writeHead(503, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ error: 'Ngrok URL not configured. Run: ngrok http 51102  then paste the https:// URL into server.js as NGROK_URL, and restart the server.' }));
       }
       const result = await initiateStkPush(phone, amount, orderRef);
+      await Transaction.create({
+            CheckoutRequestID,
+            phone,
+            amount,
+            status: "pending"
+          });
       const data   = result.body;
       if (data.ResponseCode === '0' && data.CheckoutRequestID) {
         payments.set(data.CheckoutRequestID, { status: 'pending', orderRef, resultDesc: 'Awaiting payment' });
