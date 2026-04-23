@@ -206,28 +206,40 @@ const server = http.createServer(async (req, res) => {
   }
 
   // POST /mpesa/callback  ← Safaricom sends result here
-  if (pathname === '/mpesa/callback' && method === 'POST') {
-    try {
-      const data = JSON.parse(await readBody(req));
-      console.log('[CALLBACK]', JSON.stringify(data, null, 2));
-      const cb = data?.Body?.stkCallback;
-      if (cb) {
-        const id = cb.CheckoutRequestID;
-        if (payments.has(id)) {
-          const ok = cb.ResultCode === 0;
-          payments.set(id, {
-            status:     ok ? 'success' : 'failed',
-            resultCode: cb.ResultCode,
-            resultDesc: cb.ResultDesc,
-            orderRef:   payments.get(id).orderRef
-          });
-          console.log(`[PAYMENT] ${id} → ${ok ? '✅ SUCCESS' : '❌ FAILED'}: ${cb.ResultDesc}`);
-        }
+if (pathname === '/mpesa/callback' && method === 'POST') {
+  try {
+    const data = JSON.parse(await readBody(req));
+
+    console.log('[CALLBACK]', JSON.stringify(data, null, 2));
+
+    const cb = data?.Body?.stkCallback;
+
+    if (cb) {
+      const checkoutRequestID = cb.CheckoutRequestID; // ✅ FIXED
+
+      if (payments.has(checkoutRequestID)) {
+        const ok = cb.ResultCode === 0;
+
+        payments.set(checkoutRequestID, {
+          status: ok ? 'success' : 'failed',
+          resultCode: cb.ResultCode,
+          resultDesc: cb.ResultDesc,
+          orderRef: payments.get(checkoutRequestID).orderRef
+        });
+
+        console.log(
+          `[PAYMENT] ${checkoutRequestID} → ${ok ? 'SUCCESS' : 'FAILED'}`
+        );
       }
-    } catch(e) { console.error('[CALLBACK ERROR]', e.message); }
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ResultCode: 0, ResultDesc: 'Success' }));
+    }
+
+  } catch (e) {
+    console.error('[CALLBACK ERROR]', e.message);
   }
+
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  return res.end(JSON.stringify({ ResultCode: 0, ResultDesc: 'Success' }));
+}
 
   // GET /mpesa/status/:id
   const statusMatch = pathname.match(/^\/mpesa\/status\/(.+)$/);
