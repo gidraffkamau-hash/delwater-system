@@ -1639,8 +1639,15 @@ function exportConnectionsCSV() {
 }
 
 // Hook into showTab to init connections tab
-const _origShowTab = window.showTab; // 👈 force global reference
-
+const _origShowTab = showTab;
+function showTab(tab) {
+  _origShowTab(tab);
+  if (tab === 'connections') {
+    populateMonthFilter();
+    updateConnSummary();
+    renderConnections();
+  }
+}
 // Listens for new orders saved by DelwaterFull.html in the same browser/origin
 window.addEventListener('storage', function(e) {
   if (e.key === 'delwater_orders' || e.key === 'delwater_activity') {
