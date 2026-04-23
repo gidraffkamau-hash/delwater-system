@@ -23,8 +23,8 @@ const CONFIG = {
   PORT: 51102,
 
   MPESA: {
-    CONSUMER_KEY:    'Y9H7SMQ7J6EtjwhXIWYaoEqgLgeMLzGTtH9ETgApPJxOcPWA',
-    CONSUMER_SECRET: 'HOqRb1lfKQ7Gf9VUKci37WZcZqiGVlVmdpAPAyuOze0wLGiYQpMxPUsFFuKvmTig',
+    CONSUMER_KEY:    'gGY5QPt4Ua8fSbfG7dVs1IKojEYTL20AYPXcrugNtayj1utn',
+    CONSUMER_SECRET: 'aA5w6UGwQv9Y4rDiTQIPm80iSfwJaV0rKlZkIuJgtgpw2qh2HY4522H8L3FQP8j1',
 
     // ─── SANDBOX (for testing) ───────────────────────────────────────────────
     // Use these values to test without real money. Sandbox STK pushes don't
@@ -44,7 +44,7 @@ const CONFIG = {
     //    BASE_URL:         'https://api.safaricom.co.ke',
     //    TRANSACTION_TYPE: 'CustomerBuyGoodsOnline',  // Pochi la Biashara is a till (Buy Goods)
 
-    NGROK_URL: 'YOUR_NGROK_URL',   // ← paste your ngrok https:// URL here
+    NGROK_URL: '"https://delwater-system-production.up.railway.app/mpesa/callback"',   // ← paste your ngrok https:// URL here
   }
 };
 
@@ -126,7 +126,7 @@ async function initiateStkPush(phone, amount, orderRef) {
     PartyA:            phone,
     PartyB:            CONFIG.MPESA.SHORTCODE,
     PhoneNumber:       phone,
-    CallBackURL:       `${CONFIG.MPESA.NGROK_URL}/mpesa/callback`,
+    CallBackURL:       `"https://delwater-system-production.up.railway.app/mpesa/callback"`,
     AccountReference:  orderRef,
     TransactionDesc:   `DELWATER ${orderRef}`
   });
