@@ -126,7 +126,7 @@ async function initiateStkPush(phone, amount, orderRef) {
     PartyA:            phone,
     PartyB:            CONFIG.MPESA.SHORTCODE,
     PhoneNumber:       phone,
-    CallBackURL:       `${CONFIG.MPESA.NGROK_URL}/mpesa/callback`,
+    CallBackURL:       `https://your-app.up.railway.app/api/mpesa/callback`,
     AccountReference:  orderRef,
     TransactionDesc:   `DELWATER ${orderRef}`
   });
