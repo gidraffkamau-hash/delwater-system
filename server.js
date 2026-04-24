@@ -19,7 +19,7 @@ pool.connect()
   .catch(err => console.error("❌ PostgreSQL connection error:", err.message));
 
 // ✅ USE RAILWAY PORT
-const PORT = process.env.PORT || 51102;
+const PORT = process.env.PORT || 5432;
 
 const CONFIG = {
   MPESA: {
