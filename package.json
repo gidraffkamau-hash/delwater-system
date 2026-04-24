@@ -4,6 +4,7 @@
   "description": "Water billing and M-Pesa payment system",
   "main": "server.js",
   "scripts": {
+    "migrate": "node migrations.js",
     "start": "node server.js"
   },
   "engines": {
@@ -13,6 +14,7 @@
     "axios": "^1.15.1",
     "cors": "^2.8.6",
     "express": "^4.22.1",
-    "mongoose": "^9.5.0"
+    "mongoose": "^9.5.0",
+    "pg": "^8.13.3"
   }
 }
