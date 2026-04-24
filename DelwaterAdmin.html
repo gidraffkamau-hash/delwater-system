@@ -514,6 +514,18 @@ tailwind.config = {
 </div>
 
 <script>
+let orders = [];
+
+async function loadOrders() {
+  try {
+    const res = await fetch("https://delwater-system-production.up.railway.app/");
+    orders = await res.json();
+
+    renderRecentOrders();
+  } catch (err) {
+    console.error("Failed to load orders", err);
+  }
+}
 // ─── AUTH ──────────────────────────────────────────────
 const DEFAULT_USER = 'admin';
 const DEFAULT_PASS = 'delwater2026';
@@ -719,8 +731,10 @@ function renderDashboard() {
   pb.classList.toggle('hidden', pending === 0);
 
   // Recent orders list
+function renderRecentOrders() {
   const recentEl = document.getElementById('recentOrdersList');
   const recent = orders.slice(0, 8);
+
   if (recent.length === 0) {
     recentEl.innerHTML = `<div class="py-12 text-center text-slate-400 text-sm">No orders yet</div>`;
   } else {
@@ -731,7 +745,7 @@ function renderDashboard() {
         </div>
         <div class="flex-1 min-w-0">
           <p class="font-semibold text-sm text-slate-800 truncate">${o.customer?.name || '—'}</p>
-          <p class="text-xs text-slate-400">${o.ref} · ${fmtDate(o.timestamp)}</p>
+          <p class="text-xs text-slate-400">${o.ref} · ${fmtDate(o.created_at || o.timestamp)}</p>
         </div>
         <div class="text-right">
           <p class="font-bold text-sm text-primary">KSh ${(o.total||0).toLocaleString()}</p>
@@ -740,6 +754,7 @@ function renderDashboard() {
       </div>
     `).join('');
   }
+}
 
   // Top products
   const productMap = {};
@@ -2190,6 +2205,7 @@ window.addEventListener('storage', function(e) {
     }
   }
 });
+loadOrders();
 </script>
 <!-- ── ADD READING MODAL ── -->
 <div id="readingModal" class="fixed inset-0 bg-black/50 z-[80] hidden items-center justify-center p-4">

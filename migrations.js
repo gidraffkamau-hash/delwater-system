@@ -1,51 +1,41 @@
-/**
- * ╔══════════════════════════════════════════════════╗
- * ║       DELWATER — Database Migration Script       ║
- * ║  Run with: npm run migrate                       ║
- * ╚══════════════════════════════════════════════════╝
- *
- * Creates the orders table in PostgreSQL if it does not already exist.
- * Requires the DATABASE_URL environment variable to be set.
- */
 require('dotenv').config();
 const { Client } = require('pg');
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
-if (!DATABASE_URL) {
-  console.error('❌  DATABASE_URL environment variable is not set.');
-  process.exit(1);
-}
-
-const client = new Client({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
-
-const CREATE_ORDERS_TABLE = `
-  CREATE TABLE IF NOT EXISTS orders (
-    id           SERIAL PRIMARY KEY,
-    product_name TEXT,
-    amount       INTEGER,
-    phone        TEXT,
-    status       TEXT,
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  );
-`;
-
 async function migrate() {
+  const client = new Client({
+    connectionString: DATABASE_URL,
+  });
+
   try {
     await client.connect();
-    console.log('✅  Connected to PostgreSQL.');
+    console.log('Connected to database');
 
-    await client.query(CREATE_ORDERS_TABLE);
-    console.log('✅  Migration complete: orders table is ready.');
-  } catch (err) {
-    console.error('❌  Migration failed:', err.message);
-    process.exit(1);
+    await client.query(`
+      CREATE TABLE orders (
+        id SERIAL PRIMARY KEY,
+        ref TEXT UNIQUE,
+        customer_name TEXT,
+        phone TEXT,
+        email TEXT,
+        address TEXT,
+        city TEXT,
+        items JSONB,
+        total INTEGER,
+        payment TEXT,
+        delivery_date TEXT,
+        notes TEXT,
+        status TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    console.log('Migration completed');
+  } catch (error) {
+    console.error('Migration failed:', error);
   } finally {
     await client.end();
-    console.log('🔌  Database connection closed.');
   }
 }
 

@@ -1060,11 +1060,11 @@ async function placeOrder() {
   const address = document.getElementById('co-address').value.trim();
   const city    = document.getElementById('co-city').value;
 
-  if (!name)    { alert('Please enter your full name.');        document.getElementById('co-name').focus();    return; }
-  if (!phone)   { alert('Please enter your phone number.');     document.getElementById('co-phone').focus();   return; }
+  if (!name)    { alert('Please enter your full name.'); document.getElementById('co-name').focus(); return; }
+  if (!phone)   { alert('Please enter your phone number.'); document.getElementById('co-phone').focus(); return; }
   if (!address) { alert('Please enter your delivery address.'); document.getElementById('co-address').focus(); return; }
-  if (!city)    { alert('Please select your town/city.');       document.getElementById('co-city').focus();    return; }
-  if (cart.length === 0) { alert('Your cart is empty! Please add items before placing your order.'); return; }
+  if (!city)    { alert('Please select your town/city.'); document.getElementById('co-city').focus(); return; }
+  if (cart.length === 0) { alert('Your cart is empty!'); return; }
 
   const payment       = document.querySelector('input[name="payment"]:checked')?.value || 'mpesa';
   const paymentLabels = { mpesa: 'M-Pesa (STK Push)', cash: 'Cash on Delivery', bank: 'Bank Transfer' };
@@ -1078,7 +1078,13 @@ async function placeOrder() {
     ref: orderRef,
     timestamp: new Date().toISOString(),
     customer: { name, phone, email, address, city },
-    items: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, type: i.type, subtotal: i.price * i.qty })),
+    items: cart.map(i => ({
+      name: i.name,
+      price: i.price,
+      qty: i.qty,
+      type: i.type,
+      subtotal: i.price * i.qty
+    })),
     total,
     payment: paymentLabels[payment],
     deliveryDate: date || '',
@@ -1088,7 +1094,35 @@ async function placeOrder() {
 
   const btn = document.getElementById('placeOrderBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="material-symbols-outlined text-lg" style="animation:spin 1s linear infinite">autorenew</span> Processing…';
+  btn.innerHTML = 'Processing...';
+
+  try {
+    const res = await fetch("https://delwater-system-production.up.railway.app/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(orderRecord)
+    });
+
+    if (!res.ok) throw new Error("Failed to save order");
+
+    const data = await res.json();
+    console.log("Order saved:", data);
+
+    alert("Order placed successfully!");
+
+    cart = [];
+    localStorage.removeItem("cart");
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to place order");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "Place Order";
+  }
+
 
   // ── M-PESA STK PUSH FLOW ──────────────────────────
   if (payment === 'mpesa') {

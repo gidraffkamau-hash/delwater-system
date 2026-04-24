@@ -9,7 +9,12 @@
  *   2. Set LNM_PASSKEY from developer.safaricom.co.ke
  *      → Your App → LNM Online Passkey
  */
+const { Pool } = require("pg");
 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // from Railway
+  ssl: { rejectUnauthorized: false }
+});
 require('dotenv').config();
 const http  = require('http');
 const https = require('https');
@@ -155,6 +160,43 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
+  if (pathname === '/api/orders' && method === 'POST') {
+    try {
+      const data = JSON.parse(await readBody(req));
+
+      const result = await pool.query(
+        `INSERT INTO orders 
+        (ref, customer_name, phone, email, address, city, items, total, payment, delivery_date, notes, status)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+        RETURNING *`,
+        [
+          data.ref,
+          data.customer.name,
+          data.customer.phone,
+          data.customer.email,
+          data.customer.address,
+          data.customer.city,
+          JSON.stringify(data.items),
+          data.total,
+          data.payment,
+          data.deliveryDate,
+          data.notes,
+          data.status
+        ]
+      );
+
+      console.log('[NEW ORDER]', data.ref);
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(result.rows[0]));
+
+    } catch (err) {
+      console.error('[ORDER ERROR]', err.message);
+      res.writeHead(500);
+      return res.end('Error saving order');
+    }
+  }
+
   // POST /mpesa/stkpush
   if (pathname === '/mpesa/stkpush' && method === 'POST') {
     try {
@@ -185,28 +227,37 @@ const server = http.createServer(async (req, res) => {
   }
 
   // POST /mpesa/callback  ← Safaricom sends result here
-  if (pathname === '/mpesa/callback' && method === 'POST') {
-    try {
-      const data = JSON.parse(await readBody(req));
-      console.log('[CALLBACK]', JSON.stringify(data, null, 2));
-      const cb = data?.Body?.stkCallback;
-      if (cb) {
-        const id = cb.CheckoutRequestID;
-        if (payments.has(id)) {
-          const ok = cb.ResultCode === 0;
-          payments.set(id, {
-            status:     ok ? 'success' : 'failed',
-            resultCode: cb.ResultCode,
-            resultDesc: cb.ResultDesc,
-            orderRef:   payments.get(id).orderRef
-          });
-          console.log(`[PAYMENT] ${id} → ${ok ? '✅ SUCCESS' : '❌ FAILED'}: ${cb.ResultDesc}`);
-        }
+if (pathname === '/mpesa/callback' && method === 'POST') {
+  try {
+    const data = JSON.parse(await readBody(req));
+    console.log('[CALLBACK]', JSON.stringify(data, null, 2));
+
+    const cb = data?.Body?.stkCallback;
+
+    if (cb) {
+      const id = cb.CheckoutRequestID;
+
+      if (payments.has(id)) {
+        const ok = cb.ResultCode === 0;
+        const ref = payments.get(id).orderRef;
+
+        // ✅ UPDATE DATABASE ORDER
+        await pool.query(
+          "UPDATE orders SET status=$1 WHERE ref=$2",
+          [ok ? 'Paid' : 'Failed', ref]
+        );
+
+        console.log(`[PAYMENT] ${ref} → ${ok ? 'PAID' : 'FAILED'}`);
       }
-    } catch(e) { console.error('[CALLBACK ERROR]', e.message); }
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ResultCode: 0, ResultDesc: 'Success' }));
+    }
+
+  } catch (e) {
+    console.error('[CALLBACK ERROR]', e.message);
   }
+
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  return res.end(JSON.stringify({ ResultCode: 0, ResultDesc: 'Success' }));
+}
 
   // GET /mpesa/status/:id
   const statusMatch = pathname.match(/^\/mpesa\/status\/(.+)$/);
@@ -214,6 +265,22 @@ const server = http.createServer(async (req, res) => {
     const id = decodeURIComponent(statusMatch[1]);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify(payments.get(id) || { status: 'unknown' }));
+  }
+
+  if (pathname === '/api/orders' && method === 'GET') {
+    try {
+      const result = await pool.query(
+        "SELECT * FROM orders ORDER BY created_at DESC"
+      );
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(result.rows));
+
+    } catch (err) {
+      console.error('[FETCH ORDERS ERROR]', err.message);
+      res.writeHead(500);
+      return res.end('Error fetching orders');
+    }
   }
 
   // Static files
