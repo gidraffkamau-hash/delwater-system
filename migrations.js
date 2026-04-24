@@ -4,16 +4,24 @@ const { Client } = require('pg');
 const DATABASE_URL = process.env.DATABASE_URL;
 
 async function migrate() {
+  if (!DATABASE_URL) {
+    console.error('❌ DATABASE_URL is missing in .env');
+    process.exit(1);
+  }
+
   const client = new Client({
     connectionString: DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false, // REQUIRED for Railway PostgreSQL
+    },
   });
 
   try {
     await client.connect();
-    console.log('Connected to database');
+    console.log('✅ Connected to database');
 
     await client.query(`
-      CREATE TABLE orders (
+      CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         ref TEXT UNIQUE,
         customer_name TEXT,
@@ -26,16 +34,17 @@ async function migrate() {
         payment TEXT,
         delivery_date TEXT,
         notes TEXT,
-        status TEXT,
+        status TEXT DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
-    console.log('Migration completed');
+    console.log('✅ Migration completed successfully');
   } catch (error) {
-    console.error('Migration failed:', error);
+    console.error('❌ Migration failed:', error.message);
   } finally {
     await client.end();
+    console.log('🔌 Database connection closed');
   }
 }
 

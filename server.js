@@ -21,13 +21,13 @@ pool.connect()
 const CONFIG = {
   PORT: 51102,
   MPESA: {
-    CONSUMER_KEY: 'YOUR_KEY',
-    CONSUMER_SECRET: 'YOUR_SECRET',
+    CONSUMER_KEY: 'gGY5QPt4Ua8fSbfG7dVs1IKojEYTL20AYPXcrugNtayj1utn',
+    CONSUMER_SECRET: 'aA5w6UGwQv9Y4rDiTQIPm80iSfwJaV0rKlZkIuJgtgpw2qh2HY4522H8L3FQP8j1',
     SHORTCODE: '174379',
-    PASSKEY: 'YOUR_PASSKEY',
+    PASSKEY: 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919',
     BASE_URL: 'https://sandbox.safaricom.co.ke',
     TRANSACTION_TYPE: 'CustomerPayBillOnline',
-    CALLBACK_URL: 'https://your-railway-url/mpesa/callback'
+    CALLBACK_URL: 'https://delwater-system-production.up.railway.app/mpesa/callback'
   }
 };
 
@@ -83,7 +83,7 @@ const server = http.createServer(async (req, res) => {
       const result = await pool.query(
         `INSERT INTO orders 
         (ref, customer_name, phone, email, address, city, items, total, payment, delivery_date, notes, status)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+        VALUES (KSH1,KSH2,KSH3,KSH4,KSH5,KSH6,KSH7,KSH8,KSH9,KSH10,KSH11,KSH12)
         RETURNING *`,
         [
           data.ref,
