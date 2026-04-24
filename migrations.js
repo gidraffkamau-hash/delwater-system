@@ -7,7 +7,7 @@
  * Creates the orders table in PostgreSQL if it does not already exist.
  * Requires the DATABASE_URL environment variable to be set.
  */
-
+require('dotenv').config();
 const { Client } = require('pg');
 
 const DATABASE_URL = process.env.DATABASE_URL;
