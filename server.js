@@ -7,19 +7,21 @@ const fs    = require('fs');
 const path  = require('path');
 const url   = require('url');
 
-// ✅ PostgreSQL connection
+// ✅ SAFE DATABASE CONNECTION
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// ✅ test connection on start
+// ✅ test DB but DO NOT crash app
 pool.connect()
   .then(() => console.log("✅ PostgreSQL connected"))
-  .catch(err => console.error("❌ PostgreSQL connection error:", err));
+  .catch(err => console.error("❌ PostgreSQL connection error:", err.message));
+
+// ✅ USE RAILWAY PORT
+const PORT = process.env.PORT || 51102;
 
 const CONFIG = {
-  PORT: 51102,
   MPESA: {
     CONSUMER_KEY: 'gGY5QPt4Ua8fSbfG7dVs1IKojEYTL20AYPXcrugNtayj1utn',
     CONSUMER_SECRET: 'aA5w6UGwQv9Y4rDiTQIPm80iSfwJaV0rKlZkIuJgtgpw2qh2HY4522H8L3FQP8j1',
@@ -31,8 +33,6 @@ const CONFIG = {
   }
 };
 
-const payments = new Map();
-
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css',
@@ -40,7 +40,6 @@ const MIME = {
   '.json': 'application/json'
 };
 
-// ================= HELPERS =================
 function readBody(req) {
   return new Promise(resolve => {
     let body = '';
@@ -54,10 +53,7 @@ function httpsRequest(options, body) {
     const req = https.request(options, res => {
       let data = '';
       res.on('data', c => data += c);
-      res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch { resolve(data); }
-      });
+      res.on('end', () => resolve(JSON.parse(data)));
     });
     req.on('error', reject);
     if (body) req.write(body);
@@ -65,7 +61,6 @@ function httpsRequest(options, body) {
   });
 }
 
-// ================= SERVER =================
 const server = http.createServer(async (req, res) => {
   const { pathname } = url.parse(req.url);
   const method = req.method.toUpperCase();
@@ -83,7 +78,7 @@ const server = http.createServer(async (req, res) => {
       const result = await pool.query(
         `INSERT INTO orders 
         (ref, customer_name, phone, email, address, city, items, total, payment, delivery_date, notes, status)
-        VALUES (KSH1,KSH2,KSH3,KSH4,KSH5,KSH6,KSH7,KSH8,KSH9,KSH10,KSH11,KSH12)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
         RETURNING *`,
         [
           data.ref,
@@ -105,8 +100,8 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify(result.rows[0]));
 
     } catch (err) {
-      console.error("🔥 ORDER ERROR:", err);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
+      console.error("🔥 ORDER ERROR:", err.message);
+      res.writeHead(500);
       return res.end(JSON.stringify({ error: err.message }));
     }
   }
@@ -122,71 +117,10 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify(result.rows));
 
     } catch (err) {
-      console.error("🔥 FETCH ERROR:", err);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
+      console.error("🔥 FETCH ERROR:", err.message);
+      res.writeHead(500);
       return res.end(JSON.stringify({ error: err.message }));
     }
-  }
-
-  // ================= STK PUSH =================
-  if (pathname === '/mpesa/stkpush' && method === 'POST') {
-    try {
-      const { phone, amount, orderRef } = JSON.parse(await readBody(req));
-
-      const payload = JSON.stringify({
-        BusinessShortCode: CONFIG.MPESA.SHORTCODE,
-        Password: "GENERATED_PASSWORD",
-        Timestamp: "TIMESTAMP",
-        TransactionType: CONFIG.MPESA.TRANSACTION_TYPE,
-        Amount: amount,
-        PartyA: phone,
-        PartyB: CONFIG.MPESA.SHORTCODE,
-        PhoneNumber: phone,
-        CallBackURL: CONFIG.MPESA.CALLBACK_URL,
-        AccountReference: orderRef,
-        TransactionDesc: "Payment"
-      });
-
-      const result = await httpsRequest({
-        hostname: "sandbox.safaricom.co.ke",
-        path: "/mpesa/stkpush/v1/processrequest",
-        method: "POST",
-        headers: { "Content-Type": "application/json" }
-      }, payload);
-
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify(result));
-
-    } catch (err) {
-      console.error("🔥 STK ERROR:", err);
-      res.writeHead(500);
-      return res.end(err.message);
-    }
-  }
-
-  // ================= CALLBACK =================
-  if (pathname === '/mpesa/callback' && method === 'POST') {
-    try {
-      const data = JSON.parse(await readBody(req));
-      const cb = data?.Body?.stkCallback;
-
-      if (cb) {
-        const ref = cb.CallbackMetadata?.Item?.find(i => i.Name === "AccountReference")?.Value;
-
-        if (ref) {
-          await pool.query(
-            "UPDATE orders SET status=$1 WHERE ref=$2",
-            [cb.ResultCode === 0 ? "Paid" : "Failed", ref]
-          );
-        }
-      }
-
-    } catch (err) {
-      console.error("🔥 CALLBACK ERROR:", err);
-    }
-
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ResultCode: 0 }));
   }
 
   // ================= STATIC FILES =================
@@ -204,6 +138,7 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(CONFIG.PORT, () => {
-  console.log(`🚀 Server running on port ${CONFIG.PORT}`);
+// ✅ IMPORTANT FOR RAILWAY
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
