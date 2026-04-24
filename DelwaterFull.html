@@ -1097,7 +1097,7 @@ async function placeOrder() {
   btn.innerHTML = 'Processing...';
 
   try {
-    const res = await fetch("https://delwater-system-production.up.railway.app/", {
+    const res = await fetch("https://shortline.proxy.rlwy.net/api/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
