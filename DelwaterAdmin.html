@@ -518,7 +518,7 @@ let orders = [];
 
 async function loadOrders() {
   try {
-    const res = await fetch("https://delwater-system-production.up.railway.app/");
+    const res = await fetch("https://delwater-system-production.up.railway.app//api/orders");
     orders = await res.json();
 
     renderRecentOrders();
