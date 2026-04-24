@@ -135,7 +135,7 @@ async function initiateStkPush(phone, amount, orderRef) {
     CallBackURL:       "https://delwater-system-production.up.railway.app/mpesa/callback",
     AccountReference:  orderRef,
     TransactionDesc:   `DELWATER ${orderRef}`,
-    DataBaseURL:       "postgresql://postgres:bZvKCvrzUKmjIvkJEeXMpdqCERUurjaC@postgres.railway.internal:5432/railway"
+    DATABASE_URL:       "postgresql://postgres:bZvKCvrzUKmjIvkJEeXMpdqCERUurjaC@shortline.proxy.rlwy.net:13324/railway"
   });
   const apiHost = new URL(CONFIG.MPESA.BASE_URL).hostname;
   return await httpsRequest({
